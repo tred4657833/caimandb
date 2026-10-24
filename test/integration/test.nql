@@ -1,0 +1,52 @@
+-- test.nql
+--
+-- Regression test for the duplicate "IMPORT" case bug in dsl_parser.go:
+-- when adding the new syntax "IMPORT <block> FROM FILE ... [FORMAT ...] [BATCH ...]"
+-- (cmd_import.go / handleImportCmd) it wasn't noticed that an
+-- "IMPORT <block> <file>" already existed (cmd_admin.go / handleImport),
+-- and the switch ended up with two `case "IMPORT":` -> wouldn't compile.
+--
+-- The fix unifies both under a single case that decides by syntax:
+-- if "FROM FILE" comes, it uses the new streaming import; otherwise it
+-- falls back to the legacy import. This script exercises both paths
+-- so a future regression (someone duplicates the case again, or breaks
+-- the dispatch) will be noticed by running:
+--
+--   go run ./cli run test/integration/test.nql
+--
+-- Must be run from the repo root, since fixture paths are relative to
+-- test/fixtures/.
+
+CREATE DB test_import_db
+USE test_import_db
+CREATE BLOCK products
+
+-- 1) Sanity check: regular INSERT still works.
+INSERT products {"name": "Single product", "price": 9.99, "stock": 5, "category": "misc"}
+COUNT products
+
+-- 2) Legacy IMPORT: "IMPORT <block> <file>" (handleImport, cmd_admin.go).
+--    Uses eng.Import, which loads the entire file into memory. Accepts
+--    JSON (array) or CSV.
+IMPORT products test/fixtures/sample_products.json
+COUNT products
+
+-- 3) Streaming IMPORT: "IMPORT <block> FROM FILE '<path>' FORMAT NDJSON"
+--    (handleImportCmd, cmd_import.go). Before the fix, this was the
+--    second `case "IMPORT":` that caused compilation to fail.
+IMPORT products FROM FILE 'test/fixtures/sample_products.ndjson' FORMAT NDJSON
+COUNT products
+
+-- 4) Same streaming path but with explicit BATCH, to exercise that
+--    options parser branch as well.
+IMPORT products FROM FILE 'test/fixtures/sample_products.ndjson' FORMAT NDJSON BATCH 2
+COUNT products
+
+-- 5) Expected errors: misuse of each syntax should give a controlled
+--    ERROR, not a panic or handler confusion.
+IMPORT products FROM FILE
+IMPORT products FROM FILE 'test/fixtures/sample_products.ndjson' FORMAT XML
+IMPORT products FROM FILE 'test/fixtures/no_such_file.ndjson' FORMAT NDJSON
+
+-- Cleanup
+DROP DB test_import_db

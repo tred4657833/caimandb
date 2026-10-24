@@ -1,0 +1,3700 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CaimanDB UI</title>
+<link rel="shortcut icon" href="img/icon.png" type="image/x-icon">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=Lexend:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.10.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg0: #0d0d14;
+  --bg1: #14141f;
+  --bg2: #1a1a2e;
+  --bg3: #22223a;
+  --bg4: #2a2a46;
+  --border: #2a2a46;
+  --border2: #3a3a5a;
+  --txt: #e0e0f0;
+  --txt2: #a0a0c0;
+  --txt3: #6a6a8a;
+  --acc: #7aa9ff;
+  --acc2: #5a8adf;
+  --green: #8fcf8a;
+  --red: #e07a8a;
+  --yellow: #e8d07a;
+  --orange: #e8b07a;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', sans-serif;
+  --display: 'Lexend', 'Inter', sans-serif;
+  --radius: 6px;
+  --shadow: 0 2px 8px rgba(0,0,0,0.4);
+
+  --plot-1: #6C9BD1;
+  --plot-2: #4FB89A;
+  --plot-3: #D4A24E;
+  --plot-4: #C77B8B;
+  --plot-5: #9C8BD9;
+  --plot-6: #5FB0C9;
+  --plot-7: #D18E5B;
+  --plot-8: #7FBF7F;
+  --plot-9: #B98BC9;
+  --plot-10: #6FA8A0;
+  --plot-grid: rgba(160,160,192,0.14);
+  --plot-paper: #14141f;
+  --plot-plot: #171727;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg0);
+  color: var(--txt);
+  font-family: var(--sans);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--txt3); }
+
+button, input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 10px;
+  outline: none;
+  transition: border-color .15s, background .15s;
+}
+button { cursor: pointer; }
+button:hover { background: var(--bg3); }
+button:active { background: var(--bg4); }
+input:focus, select:focus, textarea:focus { border-color: var(--acc); }
+
+select option { background: var(--bg2); color: var(--txt); }
+
+.connect-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.connect-card {
+  width: 100%;
+  max-width: 380px;
+  padding: 32px 28px;
+}
+
+.connect-card .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.connect-card .logo i {
+  font-size: 28px;
+  color: var(--acc);
+}
+.connect-card .logo h1 {
+  font-family: var(--display);
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+.connect-card .sub {
+  color: var(--txt3);
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  margin-bottom: 24px;
+  padding-left: 2px;
+}
+
+.field { display: flex; flex-direction: column; gap: 3px; margin-bottom: 12px; }
+.field label {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.field-row { display: flex; gap: 10px; }
+.field-row .field { flex: 1; }
+.field-row .field:last-child { flex: 0 0 76px; }
+
+.field-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--txt2);
+  margin-bottom: 14px;
+}
+.field-check input { accent-color: var(--acc); width: 14px; height: 14px; }
+
+.btn-primary {
+  width: 100%;
+  background: var(--acc);
+  border: none;
+  color: #0a0a14;
+  font-weight: 700;
+  padding: 10px;
+  border-radius: var(--radius);
+  transition: background .15s;
+}
+.btn-primary:hover { background: var(--acc2); }
+.btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+.connect-error {
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(224,122,138,.12);
+  border: 1px solid rgba(224,122,138,.25);
+  border-radius: var(--radius);
+  color: var(--red);
+  font-size: 12px;
+}
+
+.app {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+.app.visible { display: flex; }
+
+.titlebar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  height: 40px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.titlebar .brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: -0.2px;
+}
+.titlebar .brand i { color: var(--acc); font-size: 18px; }
+.titlebar .target {
+  color: var(--txt3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.titlebar .spacer { flex: 1; }
+.titlebar .status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--txt2);
+}
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--txt3);
+  flex-shrink: 0;
+}
+.status-dot.ok { background: var(--green); box-shadow: 0 0 6px rgba(143,207,138,.3); }
+.status-dot.err { background: var(--red); box-shadow: 0 0 6px rgba(224,122,138,.3); }
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 3px 12px;
+  font-size: 11px;
+  border-radius: var(--radius);
+  color: var(--txt3);
+}
+.btn-ghost:hover { background: var(--bg2); color: var(--txt2); }
+
+.body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 12px 10px;
+  overflow: hidden;
+}
+
+.sidebar .section-title {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--txt3);
+  font-weight: 600;
+  padding: 0 4px;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar .section-title .title-actions {
+  display: flex;
+  gap: 2px;
+}
+.sidebar .section-title .title-actions button {
+  background: none;
+  border: none;
+  padding: 0 3px;
+  color: var(--txt3);
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.sidebar .section-title .title-actions button:hover {
+  background: var(--bg2);
+  color: var(--acc);
+}
+.sidebar .section-title .title-actions .del:hover { color: var(--red); }
+
+.sidebar .db-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.sidebar .db-row select {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--txt);
+  cursor: pointer;
+}
+.sidebar .db-row button {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 5px 8px;
+  color: var(--txt3);
+  font-size: 14px;
+}
+.sidebar .db-row button:hover { color: var(--acc); }
+
+.sidebar .block-list {
+  flex: 1;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+.sidebar .block-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--txt2);
+  transition: background .1s, color .1s;
+}
+.sidebar .block-item:hover {
+  background: var(--bg2);
+  color: var(--txt);
+}
+.sidebar .block-item i {
+  font-size: 13px;
+  color: var(--txt3);
+  transition: color .1s;
+}
+.sidebar .block-item:hover i { color: var(--acc); }
+.sidebar .block-item .arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: var(--txt3);
+  opacity: 0.4;
+}
+.sidebar .block-item:hover .arrow { opacity: 0.8; color: var(--acc); }
+.sidebar .block-item .block-actions {
+  display: none;
+  gap: 2px;
+  margin-left: auto;
+}
+.sidebar .block-item:hover .block-actions { display: flex; }
+.sidebar .block-item .block-actions button {
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  color: var(--txt3);
+  font-size: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.sidebar .block-item .block-actions button:hover { background: var(--bg3); }
+.sidebar .block-item .block-actions .del:hover { color: var(--red); }
+.sidebar .block-item .block-actions .edit:hover { color: var(--yellow); }
+.sidebar .block-item .block-actions .add-doc:hover { color: var(--green); }
+
+.sidebar .empty-msg {
+  color: var(--txt3);
+  font-size: 11.5px;
+  padding: 10px 6px;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.toolbar .input-wrap {
+  flex: 1;
+  min-width: 180px;
+  position: relative;
+}
+.toolbar .input-wrap textarea {
+  width: 100%;
+  height: 32px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 10px;
+  color: var(--txt);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  resize: none;
+  outline: none;
+  line-height: 1.5;
+  transition: border-color .15s;
+}
+.toolbar .input-wrap textarea:focus { border-color: var(--acc); }
+
+.toolbar .btn-run {
+  background: var(--acc);
+  border: none;
+  color: #0a0a14;
+  font-weight: 600;
+  padding: 4px 16px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toolbar .btn-run:hover { background: var(--acc2); }
+.toolbar .btn-run:disabled { opacity: 0.5; }
+
+.toolbar .btn-chart {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--txt2);
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.toolbar .btn-chart:hover {
+  background: var(--bg4);
+  border-color: var(--acc);
+  color: var(--acc);
+}
+
+.toolbar .limit-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--txt3);
+}
+.toolbar .limit-group select {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 3px 6px;
+  font-size: 11px;
+  color: var(--txt);
+  cursor: pointer;
+  height: 28px;
+}
+
+.toolbar .quick-group {
+  display: flex;
+  gap: 3px;
+}
+.toolbar .quick-group button {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 3px 10px;
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--txt3);
+  border-radius: var(--radius);
+  height: 28px;
+}
+.toolbar .quick-group button:hover { color: var(--acc); border-color: var(--acc); }
+
+.results {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.results .res-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  background: var(--bg1);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  height: 32px;
+  flex-wrap: wrap;
+}
+.results .res-header .info {
+  font-size: 10.5px;
+  color: var(--txt3);
+}
+.results .res-header .info strong { color: var(--txt2); font-weight: 500; }
+
+.results .res-header .search-wrap {
+  flex: 1;
+  min-width: 120px;
+  max-width: 300px;
+  position: relative;
+}
+.results .res-header .search-wrap input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2px 8px 2px 28px;
+  font-size: 11px;
+  height: 24px;
+  color: var(--txt);
+}
+.results .res-header .search-wrap input::placeholder { color: var(--txt3); }
+.results .res-header .search-wrap i {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--txt3);
+  font-size: 13px;
+}
+
+.results .res-header .actions {
+  display: flex;
+  gap: 2px;
+}
+.results .res-header .actions button {
+  background: none;
+  border: none;
+  padding: 3px 7px;
+  color: var(--txt3);
+  border-radius: var(--radius);
+  font-size: 14px;
+  cursor: pointer;
+}
+.results .res-header .actions button:hover { background: var(--bg2); color: var(--acc); }
+
+.results .res-body {
+  flex: 1;
+  overflow: auto;
+  background: var(--bg0);
+}
+
+.results .res-body .empty-msg,
+.results .res-body .error-msg {
+  padding: 20px;
+  font-size: 12.5px;
+  color: var(--txt3);
+}
+.results .res-body .error-msg { color: var(--red); }
+
+.results .res-body table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+.results .res-body th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg2);
+  color: var(--txt2);
+  font-weight: 500;
+  padding: 5px 12px;
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  font-family: var(--sans);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+.results .res-body td {
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--txt);
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.results .res-body tr:hover td { background: rgba(122,169,255,.04); }
+.results .res-body tr td .row-actions {
+  display: none;
+  gap: 4px;
+}
+.results .res-body tr:hover td .row-actions { display: inline-flex; }
+.results .res-body tr td .row-actions button {
+  background: none;
+  border: none;
+  padding: 0 3px;
+  color: var(--txt3);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 3px;
+}
+.results .res-body tr td .row-actions button:hover { background: var(--bg3); }
+.results .res-body tr td .row-actions .edit:hover { color: var(--yellow); }
+.results .res-body tr td .row-actions .del:hover { color: var(--red); }
+.results .res-body tr td .row-actions .add-field:hover { color: var(--green); }
+.results .res-body tr td .row-actions .clear-field:hover { color: var(--orange); }
+
+.results .res-body .table-wrap { overflow: auto; }
+
+.results .res-body pre {
+  padding: 14px 16px;
+  color: var(--txt2);
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  line-height: 1.6;
+}
+
+.array-badge {
+  display: inline-block;
+  background: var(--bg3);
+  color: var(--acc);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 9px;
+  margin-left: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--sans);
+  letter-spacing: 0.3px;
+}
+.array-badge:hover {
+  background: var(--bg4);
+  color: var(--acc2);
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+
+.modal {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px 28px;
+  max-width: 95vw;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+.modal .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.modal .modal-header h2 {
+  font-family: var(--display);
+  font-size: 16.5px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+.modal .modal-header .close {
+  background: none;
+  border: none;
+  color: var(--txt3);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal .modal-header .close:hover { color: var(--red); }
+
+.modal .field {
+  margin-bottom: 12px;
+}
+.modal .field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--txt2);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.modal .field input,
+.modal .field textarea,
+.modal .field select {
+  width: 100%;
+  margin-top: 3px;
+}
+.modal .field textarea {
+  min-height: 60px;
+  resize: vertical;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.modal .dynamic-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.modal .dynamic-field .field {
+  flex: 1;
+  margin-bottom: 0;
+}
+.modal .dynamic-field .field input {
+  margin-top: 0;
+}
+.modal .dynamic-field .remove-field {
+  background: none;
+  border: none;
+  color: var(--txt3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal .dynamic-field .remove-field:hover { color: var(--red); }
+
+.modal .add-field-btn {
+  background: none;
+  border: 1px dashed var(--border2);
+  color: var(--txt3);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 12px;
+  width: 100%;
+  margin-top: 4px;
+}
+.modal .add-field-btn:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  background: var(--bg2);
+}
+
+.modal .modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+.modal .modal-actions button {
+  padding: 6px 18px;
+  border-radius: var(--radius);
+  border: none;
+  font-weight: 600;
+  font-size: 12px;
+}
+.modal .modal-actions .btn-cancel {
+  background: var(--bg3);
+  color: var(--txt2);
+}
+.modal .modal-actions .btn-cancel:hover { background: var(--bg4); }
+.modal .modal-actions .btn-save {
+  background: var(--acc);
+  color: #0a0a14;
+}
+.modal .modal-actions .btn-save:hover { background: var(--acc2); }
+.modal .modal-actions .btn-danger {
+  background: var(--red);
+  color: #0a0a14;
+}
+.modal .modal-actions .btn-danger:hover { background: #c06a7a; }
+
+.modal .modal-error {
+  color: var(--red);
+  font-size: 12px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  background: rgba(224,122,138,.1);
+  border-radius: var(--radius);
+}
+
+.modal .block-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.modal .block-selector select {
+  flex: 1;
+}
+
+.array-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.array-item input {
+  flex: 1;
+}
+.array-item .remove-item {
+  background: none;
+  border: none;
+  color: var(--txt3);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.array-item .remove-item:hover { color: var(--red); }
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 0px;
+  padding: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.table-actions button {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 4px 12px;
+  font-size: 11px;
+  border-radius: var(--radius);
+  color: var(--txt2);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.table-actions button:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+}
+.table-actions .danger-btn:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
+.current-columns-info {
+  font-size: 10px;
+  color: var(--txt3);
+  padding: 4px 0;
+}
+.current-columns-info strong {
+  color: var(--txt2);
+}
+
+.chart-tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  padding: 0 4px;
+  flex-wrap: wrap;
+}
+.chart-tabs .tab-btn {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  color: var(--txt3);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-tabs .tab-btn:hover {
+  color: var(--txt2);
+  background: var(--bg2);
+  border-radius: 0px;
+}
+.chart-tabs .tab-btn.active {
+  color: var(--acc);
+  border-bottom-color: var(--acc);
+}
+.chart-tabs .tab-btn .badge {
+  background: var(--bg3);
+  color: var(--txt3);
+  border-radius: 10px;
+  padding: 0 8px;
+  font-size: 9px;
+  font-weight: 700;
+  font-family: var(--mono);
+}
+.chart-tabs .tab-btn.active .badge {
+  background: var(--acc);
+  color: #0a0a14;
+}
+
+.chart-panel {
+  display: none;
+  padding: 4px 0;
+}
+.chart-panel.active {
+  display: block;
+}
+
+.chart-container {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 10px 0;
+  position: relative;
+  min-height: 420px;
+}
+.chart-container .plotly-graph-div {
+  max-width: 100%;
+}
+
+.chart-container.split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  padding: 14px;
+}
+.chart-container.split > div { min-height: 360px; }
+@media (max-width: 860px) {
+  .chart-container.split { grid-template-columns: 1fr; }
+}
+
+.chart-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+.chart-controls .field {
+  flex: 1;
+  min-width: 120px;
+  margin-bottom: 0;
+}
+.chart-controls .field label {
+  font-size: 9px;
+}
+.chart-controls select,
+.chart-controls input {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 4px 8px;
+  font-size: 11px;
+  color: var(--txt);
+  height: 30px;
+}
+.chart-controls .btn-chart-gen {
+  background: var(--acc);
+  border: none;
+  color: #0a0a14;
+  font-weight: 600;
+  padding: 4px 20px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+}
+.chart-controls .btn-chart-gen:hover { background: var(--acc2); }
+
+.stats-table-wrap {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: auto;
+  margin: 10px 0;
+}
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+.stats-table th {
+  position: sticky;
+  top: 0;
+  background: var(--bg2);
+  color: var(--txt2);
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: right;
+  padding: 8px 14px;
+  border-bottom: 2px solid var(--border);
+  white-space: nowrap;
+}
+.stats-table th:first-child {
+  text-align: left;
+  font-family: var(--sans);
+}
+.stats-table td {
+  padding: 6px 14px;
+  text-align: right;
+  color: var(--txt);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.stats-table td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-weight: 600;
+  color: var(--txt2);
+}
+.stats-table tr:hover td { background: rgba(122,169,255,.04); }
+.stats-table .col-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 7px;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+.insight-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--acc);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+.insight-card .insight-label {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--txt3);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.insight-card .insight-text {
+  font-size: 12px;
+  color: var(--txt2);
+  line-height: 1.5;
+}
+.insight-card .insight-text strong { color: var(--txt); font-family: var(--mono); }
+
+.chart-download-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: var(--bg2);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  margin-top: 8px;
+  align-items: center;
+}
+.chart-download-controls .btn-download {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--txt2);
+  padding: 4px 12px;
+  border-radius: var(--radius);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.chart-download-controls .btn-download:hover {
+  border-color: var(--acc);
+  color: var(--acc);
+  background: var(--bg4);
+}
+.chart-download-controls .btn-download.primary {
+  background: var(--acc);
+  border: none;
+  color: #0a0a14;
+}
+.chart-download-controls .btn-download.primary:hover {
+  background: var(--acc2);
+}
+.chart-download-controls .btn-download.zip {
+  background: var(--yellow);
+  border: none;
+  color: #0a0a14;
+}
+.chart-download-controls .btn-download.zip:hover {
+  background: #d4b85a;
+}
+.chart-download-controls .btn-download .icon-svg {
+  font-size: 14px;
+}
+
+.chart-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.chart-metrics .metric-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--border2);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  text-align: left;
+  transition: border-color .2s, transform .15s;
+}
+.chart-metrics .metric-card:hover {
+  border-top-color: var(--acc);
+  transform: translateY(-1px);
+}
+.chart-metrics .metric-card .metric-value {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--txt);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
+}
+.chart-metrics .metric-card .metric-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--txt3);
+  letter-spacing: 0.5px;
+  margin-top: 3px;
+}
+
+.chart-section-title {
+  font-family: var(--display);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  color: var(--txt2);
+  margin: 8px 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chart-section-title i {
+  color: var(--acc);
+}
+.chart-section-sub {
+  font-size: 10.5px;
+  color: var(--txt3);
+  margin: -2px 0 10px 0;
+}
+
+@media (max-width: 768px) {
+  .modal {
+    max-width: 98vw;
+    padding: 16px;
+  }
+  .chart-controls .field {
+    min-width: 80px;
+  }
+  .chart-tabs .tab-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+}
+</style>
+</head>
+<body>
+
+<section class="connect-screen" id="connectScreen">
+  <div class="connect-card">
+    <div class="logo">
+      <img src="img/logo.png" style="height: 40px;" alt="">
+    </div>
+    <p class="sub">Credencial</p>
+
+    <form id="connectForm">
+      <div class="field-row">
+        <div class="field">
+          <label>Host</label>
+          <input style=" width: 100%;" type="text" id="fHost" value="localhost" required />
+        </div>
+        <div class="field">
+          <label>Puerto</label>
+          <input style=" width: 100%;" type="number" id="fPort" value="1555" required />
+        </div>
+      </div>
+      <div class="field">
+        <label>Base de datos</label>
+        <input type="text" id="fDb" value="default" />
+      </div>
+      <div class="field">
+        <label>Usuario</label>
+        <input type="text" id="fUser" value="admin" required />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="fPass" required />
+      </div>
+      <div class="field-check">
+        <input type="checkbox" id="fTls" />
+        <span>Usar HTTPS</span>
+      </div>
+      <button type="submit" class="btn-primary" id="connectBtn">Conectar</button>
+      <p class="connect-error" id="connectError" hidden></p>
+    </form>
+  </div>
+</section>
+
+<div class="app" id="app">
+
+  <div class="titlebar">
+    <div class="brand">
+      <img src="img/logo.png" style="height: 30px;" alt="">
+    </div>
+    <span class="target" id="targetLabel">—</span>
+    <span class="spacer"></span>
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">conectando…</span>
+      <button style="display: none;" class="btn-ghost" id="disconnectBtn">Desconectar</button>
+    </div>
+  </div>
+
+  <div class="body">
+
+    <aside class="sidebar">
+      <div class="section-title">
+        Base de datos
+        <div class="title-actions">
+          <button id="addDbBtn" title="Crear DB"><i class="ti ti-plus"></i></button>
+          <button id="delDbBtn" class="del" title="Eliminar DB"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div class="db-row">
+        <select id="dbSelect"></select>
+        <button id="refreshBtn" title="Actualizar"><i class="ti ti-refresh"></i></button>
+      </div>
+
+      <div class="section-title" style="margin-top:8px;">
+        Bloques
+        <div class="title-actions">
+          <button id="addBlockBtn" title="Crear Bloque"><i class="ti ti-plus"></i></button>
+        </div>
+      </div>
+      <div class="block-list" id="blockList">
+        <div class="empty-msg">Conecta para ver los bloques.</div>
+      </div>
+    </aside>
+
+    <div class="main">
+
+      <div class="toolbar">
+        <div class="input-wrap">
+          <textarea id="queryInput" rows="1">SHOW BLOCKS</textarea>
+        </div>
+
+        <button class="btn-run" id="btnRun">
+          <i class="ti ti-player-play" style="font-size:14px;"></i> Ejecutar
+        </button>
+
+        <button class="btn-chart" id="btnChart">
+          <i class="ti ti-chart-bar" style="font-size:14px;"></i> Gráficas
+        </button>
+
+        <div class="limit-group">
+          <span>Límite</span>
+          <select id="limitSelect">
+            <option value="10">10</option>
+            <option value="50">50</option>
+            <option value="100" selected>100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="0">ALL</option>
+          </select>
+        </div>
+
+        <div class="quick-group">
+          <button data-cmd="SHOW BLOCKS">SHOW BLOCKS</button>
+          <button data-cmd="SHOW DBS">SHOW DBS</button>
+          <button data-cmd="STATUS">STATUS</button>
+        </div>
+      </div>
+
+      <div class="results">
+        <div class="res-header">
+          <div class="info" id="resInfo">Listo</div>
+          <div class="search-wrap">
+            <i class="ti ti-search"></i>
+            <input type="text" id="searchInput" placeholder="Buscar en tabla..." />
+          </div>
+          <div class="actions">
+            <button id="btnCopy" title="Copiar"><i class="ti ti-copy"></i></button>
+            <button id="btnClear" title="Limpiar"><i class="ti ti-eraser"></i></button>
+          </div>
+        </div>
+        <div class="res-body" id="resBody">
+          <div class="empty-msg">Ejecuta una consulta para ver los resultados.</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Editar</h2>
+      <button class="close" id="modalClose"><i class="ti ti-x"></i></button>
+    </div>
+    <div id="modalBody"></div>
+    <div class="modal-error" id="modalError" hidden></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancelar</button>
+      <button class="btn-save" id="modalSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const state = {
+    baseUrl: "",
+    authHeader: "",
+    db: "default",
+    blocks: [],
+    dbs: [],
+    currentRows: [],
+    currentColumns: [],
+    currentQuery: "",
+    currentBlock: "",
+  };
+
+  let chartInstances = [];
+  let chartData = {};
+
+  const $ = id => document.getElementById(id);
+  const connectScreen = $("connectScreen");
+  const connectForm = $("connectForm");
+  const connectBtn = $("connectBtn");
+  const connectError = $("connectError");
+  const fHost = $("fHost");
+  const fPort = $("fPort");
+  const fDb = $("fDb");
+  const fUser = $("fUser");
+  const fPass = $("fPass");
+  const fTls = $("fTls");
+
+  const app = $("app");
+  const targetLabel = $("targetLabel");
+  const statusDot = $("statusDot");
+  const statusText = $("statusText");
+  const disconnectBtn = $("disconnectBtn");
+
+  const dbSelect = $("dbSelect");
+  const refreshBtn = $("refreshBtn");
+  const addDbBtn = $("addDbBtn");
+  const delDbBtn = $("delDbBtn");
+  const addBlockBtn = $("addBlockBtn");
+  const blockList = $("blockList");
+
+  const queryInput = $("queryInput");
+  const limitSelect = $("limitSelect");
+  const btnRun = $("btnRun");
+  const btnChart = $("btnChart");
+  const resBody = $("resBody");
+  const resInfo = $("resInfo");
+  const searchInput = $("searchInput");
+  const btnCopy = $("btnCopy");
+  const btnClear = $("btnClear");
+
+  const modalOverlay = $("modalOverlay");
+  const modalTitle = $("modalTitle");
+  const modalBody = $("modalBody");
+  const modalError = $("modalError");
+  const modalClose = $("modalClose");
+  const modalCancel = $("modalCancel");
+  const modalSave = $("modalSave");
+
+  let modalCallback = null;
+
+  function buildBaseUrl() {
+    const scheme = fTls.checked ? "https" : "http";
+    return `${scheme}://${fHost.value.trim() || "localhost"}:${fPort.value.trim() || "1555"}`;
+  }
+
+  async function apiFetch(path, opts = {}) {
+    return fetch(state.baseUrl + path, {
+      ...opts,
+      headers: { Authorization: state.authHeader, ...(opts.headers || {}) },
+    });
+  }
+
+  async function executeQuery(nql) {
+    const url = `/query?db=${encodeURIComponent(state.db)}&query=${encodeURIComponent(nql)}`;
+    const res = await apiFetch(url);
+    if (res.status === 401) throw new Error("Credenciales rechazadas.");
+    const body = await res.json().catch(() => null);
+    if (!res.ok || (body && body.success === false)) {
+      throw new Error(body?.error || body?.result || `Error HTTP ${res.status}`);
+    }
+    return body;
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return "";
+    return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function fmtCell(v) {
+    if (v === null || v === undefined) return "";
+    if (typeof v === "object") return JSON.stringify(v);
+    return String(v);
+  }
+
+  function fmtDuration(ms) {
+    if (ms < 1000) return `${ms.toFixed(1)} ms`;
+    return `${(ms / 1000).toFixed(2)} s`;
+  }
+
+  function setStatus(state, text) {
+    statusDot.className = "status-dot" + (state === "ok" ? " ok" : state === "err" ? " err" : "");
+    statusText.textContent = text;
+  }
+
+  function showModal(title, html, callback) {
+    modalTitle.textContent = title;
+    modalBody.innerHTML = html;
+    modalError.hidden = true;
+    modalCallback = callback;
+    modalOverlay.classList.add("active");
+    document.querySelector("#modalSave").className = "btn-save";
+    document.querySelector("#modalSave").textContent = "Guardar";
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove("active");
+    modalCallback = null;
+  }
+
+  function showModalError(msg) {
+    modalError.textContent = msg;
+    modalError.hidden = false;
+  }
+
+  function isArrayField(value) {
+    return Array.isArray(value);
+  }
+
+  function getBlockName() {
+    return state.currentBlock || state.currentQuery.match(/FIND\s+(\S+)/i)?.[1] ||
+           state.currentQuery.match(/GET\s+(\S+)/i)?.[1];
+  }
+
+  function isNumeric(value) {
+    return !isNaN(parseFloat(value)) && isFinite(value);
+  }
+
+  const PALETTE = [
+    '#6C9BD1', '#4FB89A', '#D4A24E', '#C77B8B', '#9C8BD9',
+    '#5FB0C9', '#D18E5B', '#7FBF7F', '#B98BC9', '#6FA8A0'
+  ];
+
+  function getColorPalette(count) {
+    const result = [];
+    for (let i = 0; i < count; i++) result.push(PALETTE[i % PALETTE.length]);
+    return result;
+  }
+
+  function hexToRgba(hex, alpha) {
+    const h = hex.replace('#', '');
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function mean(arr) { return arr.reduce((a, b) => a + b, 0) / (arr.length || 1); }
+  function variance(arr) {
+    const m = mean(arr);
+    return arr.reduce((a, b) => a + Math.pow(b - m, 2), 0) / (arr.length || 1);
+  }
+  function stddev(arr) { return Math.sqrt(variance(arr)); }
+  function quantile(sortedArr, q) {
+    if (sortedArr.length === 0) return 0;
+    const pos = (sortedArr.length - 1) * q;
+    const base = Math.floor(pos);
+    const rest = pos - base;
+    if (sortedArr[base + 1] !== undefined) {
+      return sortedArr[base] + rest * (sortedArr[base + 1] - sortedArr[base]);
+    }
+    return sortedArr[base];
+  }
+  function median(arr) {
+    const s = [...arr].sort((a, b) => a - b);
+    return quantile(s, 0.5);
+  }
+  function skewness(arr) {
+    const m = mean(arr);
+    const sd = stddev(arr);
+    if (sd === 0) return 0;
+    const n = arr.length;
+    return arr.reduce((a, b) => a + Math.pow((b - m) / sd, 3), 0) / n;
+  }
+  function pearsonCorrelation(x, y) {
+    const n = Math.min(x.length, y.length);
+    if (n < 2) return 0;
+    const mx = mean(x), my = mean(y);
+    let num = 0, dx2 = 0, dy2 = 0;
+    for (let i = 0; i < n; i++) {
+      const dx = x[i] - mx, dy = y[i] - my;
+      num += dx * dy; dx2 += dx * dx; dy2 += dy * dy;
+    }
+    const denom = Math.sqrt(dx2 * dy2);
+    return denom === 0 ? 0 : num / denom;
+  }
+
+  function getAlignedNumericSeries(cols) {
+    const series = {};
+    cols.forEach(c => series[c] = []);
+    state.currentRows.forEach(row => {
+      let complete = true;
+      cols.forEach(c => {
+        const v = row.data?.[c];
+        if (v === undefined || v === null || !isNumeric(v)) complete = false;
+      });
+      if (complete) cols.forEach(c => series[c].push(parseFloat(row.data[c])));
+    });
+    return series;
+  }
+
+  const PLOT_FONT = { family: "'Inter', sans-serif", size: 11, color: '#a0a0c0' };
+
+  function baseLayout(extra = {}) {
+    return Object.assign({
+      paper_bgcolor: 'rgba(0,0,0,0)',
+      plot_bgcolor: 'rgba(0,0,0,0)',
+      font: PLOT_FONT,
+      margin: { t: 28, r: 20, b: 48, l: 56 },
+      hoverlabel: {
+        bgcolor: '#1a1a2e',
+        bordercolor: '#3a3a5a',
+        font: { family: "'JetBrains Mono', monospace", size: 11, color: '#e0e0f0' }
+      },
+      legend: { font: { size: 10, color: '#a0a0c0' }, bgcolor: 'rgba(0,0,0,0)' },
+      xaxis: {
+        gridcolor: 'rgba(160,160,192,0.12)', zerolinecolor: 'rgba(160,160,192,0.2)',
+        tickfont: { size: 9.5 }, linecolor: '#2a2a46', automargin: true
+      },
+      yaxis: {
+        gridcolor: 'rgba(160,160,192,0.12)', zerolinecolor: 'rgba(160,160,192,0.2)',
+        tickfont: { size: 9.5 }, linecolor: '#2a2a46', automargin: true
+      },
+    }, extra);
+  }
+
+  const PLOT_CONFIG = {
+    responsive: true,
+    displaylogo: false,
+    modeBarButtonsToRemove: ['lasso2d', 'select2d'],
+    toImageButtonOptions: { format: 'png', scale: 2 }
+  };
+
+  function registerPlot(id, name) {
+    const idx = chartInstances.findIndex(p => p.id === id);
+    if (idx >= 0) chartInstances.splice(idx, 1);
+    chartInstances.push({ id, name });
+  }
+
+  function downloadChart(divId, format, filename) {
+    const gd = document.getElementById(divId);
+    if (!gd || !gd.data) {
+      showModalError("No se encontró la gráfica para descargar.");
+      return;
+    }
+    const plotlyFormat = format === 'jpg' ? 'jpeg' : format;
+    Plotly.toImage(gd, { format: plotlyFormat, width: 1200, height: 720, scale: 2 })
+      .then(dataUrl => {
+        const link = document.createElement('a');
+        link.download = `${filename || 'grafica'}.${format}`;
+        link.href = dataUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch(() => showModalError("No se pudo generar la imagen de la gráfica."));
+  }
+
+  function downloadAllChartsAsZip(format) {
+    const targets = chartInstances.filter(p => {
+      const gd = document.getElementById(p.id);
+      return gd && gd.data;
+    });
+    if (targets.length === 0) {
+      showModalError("No hay gráficas para descargar.");
+      return;
+    }
+    const zip = new JSZip();
+    const ext = format === 'jpg' ? 'jpg' : format;
+    const plotlyFormat = format === 'jpg' ? 'jpeg' : format;
+
+    Promise.all(targets.map(t =>
+      Plotly.toImage(document.getElementById(t.id), { format: plotlyFormat, width: 1200, height: 720, scale: 2 })
+        .then(dataUrl => ({ name: t.name, data: dataUrl.split(',')[1] }))
+    )).then(results => {
+      results.forEach(r => zip.file(`${r.name}.${ext}`, r.data, { base64: true }));
+      zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, `graficas_${format}.zip`));
+    }).catch(() => showModalError("No se pudieron exportar todas las gráficas."));
+  }
+
+  function downloadSingleChartAsZip(divId, format, filename) {
+    const gd = document.getElementById(divId);
+    if (!gd || !gd.data) {
+      showModalError("No se encontró la gráfica para descargar.");
+      return;
+    }
+    const ext = format === 'jpg' ? 'jpg' : format;
+    const plotlyFormat = format === 'jpg' ? 'jpeg' : format;
+    Plotly.toImage(gd, { format: plotlyFormat, width: 1200, height: 720, scale: 2 }).then(dataUrl => {
+      const zip = new JSZip();
+      zip.file(`${filename || 'grafica'}.${ext}`, dataUrl.split(',')[1], { base64: true });
+      zip.generateAsync({ type: 'blob' }).then(blob => saveAs(blob, `${filename || 'grafica'}.zip`));
+    }).catch(() => showModalError("No se pudo generar la imagen de la gráfica."));
+  }
+
+  function showChartModal() {
+    if (state.currentRows.length === 0) {
+      resInfo.textContent = "No hay datos para graficar. Ejecuta una consulta primero.";
+      return;
+    }
+
+    const cols = state.currentColumns.filter(c => c !== "_id" && c !== "_shard_id");
+    const numericCols = cols.filter(c => {
+      return state.currentRows.some(row => {
+        const val = row.data?.[c];
+        return val !== undefined && val !== null && isNumeric(val);
+      });
+    });
+    const stringCols = cols.filter(c => {
+      return state.currentRows.some(row => {
+        const val = row.data?.[c];
+        return val !== undefined && val !== null && (typeof val === 'string' || typeof val === 'number');
+      });
+    });
+
+    let numericOptions = numericCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    let stringOptions = stringCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    if (!numericOptions) numericOptions = '<option value="">Sin columnas numéricas</option>';
+    if (!stringOptions) stringOptions = '<option value="">Sin columnas de texto</option>';
+    const multiNumericOptions = numericCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+    const statColOptions = numericCols.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+
+    chartInstances = [];
+
+    showModal("Análisis de datos", `
+      <div class="chart-controls">
+        <div class="field">
+          <label>Tipo de gráfica</label>
+          <select id="chartType">
+            <option value="bar">Barras verticales</option>
+            <option value="horizontalBar">Barras horizontales</option>
+            <option value="pie">Circular</option>
+            <option value="doughnut">Anillo</option>
+            <option value="line">Línea</option>
+            <option value="radar">Radar</option>
+            <option value="polarArea">Área polar</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Eje X (categorías)</label>
+          <select id="chartLabel">${stringOptions}</select>
+        </div>
+        <div class="field">
+          <label>Eje Y (valores)</label>
+          <select id="chartValue">${numericOptions}</select>
+        </div>
+        <div class="field" style="flex:0 0 auto;">
+          <label>&nbsp;</label>
+          <button class="btn-chart-gen" id="generateChartBtn">
+            <i class="ti ti-chart-bar" style="font-size:14px;"></i> Generar
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-tabs">
+        <button class="tab-btn active" data-tab="tab1">
+          <i class="ti ti-chart-bar"></i> Principal <span class="badge" id="badge1">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab2">
+          <i class="ti ti-chart-pie"></i> Distribución <span class="badge" id="badge2">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab3">
+          <i class="ti ti-chart-line"></i> Comparativa <span class="badge" id="badge3">0</span>
+        </button>
+        <button class="tab-btn" data-tab="tab4">
+          <i class="ti ti-math-function"></i> Estadística <span class="badge" id="badge4">${numericCols.length}</span>
+        </button>
+        <button class="tab-btn" data-tab="tab5">
+          <i class="ti ti-list-numbers"></i> Métricas
+        </button>
+      </div>
+
+      <div class="chart-panel active" id="tab1">
+        <div class="chart-download-controls">
+          <span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.3px;">Descargar:</span>
+          <button class="btn-download primary" onclick="window.downloadChart('plotMain', 'png', 'grafica_principal')"><i class="ti ti-file-picture"></i> PNG</button>
+          <button class="btn-download" onclick="window.downloadChart('plotMain', 'jpg', 'grafica_principal')"><i class="ti ti-file-picture"></i> JPG</button>
+          <button class="btn-download" onclick="window.downloadSingleChartAsZip('plotMain', 'png', 'grafica_principal')"><i class="ti ti-file-zip"></i> ZIP</button>
+        </div>
+        <div id="plotMain" class="chart-container"></div>
+      </div>
+
+      <div class="chart-panel" id="tab2">
+        <div class="chart-download-controls">
+          <span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.3px;">Descargar:</span>
+          <button class="btn-download primary" onclick="window.downloadChart('plotDist', 'png', 'grafica_distribucion')"><i class="ti ti-file-picture"></i> PNG</button>
+          <button class="btn-download" onclick="window.downloadChart('plotDist', 'jpg', 'grafica_distribucion')"><i class="ti ti-file-picture"></i> JPG</button>
+          <button class="btn-download" onclick="window.downloadSingleChartAsZip('plotDist', 'png', 'grafica_distribucion')"><i class="ti ti-file-zip"></i> ZIP</button>
+        </div>
+        <div id="plotDist" class="chart-container"></div>
+      </div>
+
+      <div class="chart-panel" id="tab3">
+        <div class="chart-controls" style="margin-bottom:8px;">
+          <div class="field">
+            <label>Valores múltiples (Ctrl+Click)</label>
+            <select id="multiChartValues" multiple style="height:60px;">${multiNumericOptions}</select>
+          </div>
+          <div class="field" style="flex:0 0 auto;">
+            <label>&nbsp;</label>
+            <button class="btn-chart-gen" id="generateMultiChartBtn">
+              <i class="ti ti-chart-line" style="font-size:14px;"></i> Comparar
+            </button>
+          </div>
+        </div>
+        <div class="chart-download-controls">
+          <span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.3px;">Descargar:</span>
+          <button class="btn-download primary" onclick="window.downloadChart('plotMulti', 'png', 'grafica_comparativa')"><i class="ti ti-file-picture"></i> PNG</button>
+          <button class="btn-download" onclick="window.downloadChart('plotMulti', 'jpg', 'grafica_comparativa')"><i class="ti ti-file-picture"></i> JPG</button>
+          <button class="btn-download" onclick="window.downloadSingleChartAsZip('plotMulti', 'png', 'grafica_comparativa')"><i class="ti ti-file-zip"></i> ZIP</button>
+        </div>
+        <div id="plotMulti" class="chart-container" style="min-height:360px;"></div>
+      </div>
+
+      <div class="chart-panel" id="tab4">
+        <div class="chart-section-title"><i class="ti ti-table"></i> Resumen estadístico</div>
+        <div class="chart-section-sub">Conteo, tendencia central, dispersión, cuartiles y asimetría de cada columna numérica.</div>
+        <div id="statsTableWrap" class="stats-table-wrap"></div>
+        <div id="insightsWrap"></div>
+        <div class="chart-section-title" style="margin-top:18px;"><i class="ti ti-grid-dots"></i> Matriz de correlación</div>
+        <div class="chart-section-sub">Coeficiente de correlación de Pearson entre columnas numéricas (−1 a 1).</div>
+        <div class="chart-download-controls">
+          <span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.3px;">Descargar:</span>
+          <button class="btn-download primary" onclick="window.downloadChart('plotCorr', 'png', 'matriz_correlacion')"><i class="ti ti-file-picture"></i> PNG</button>
+          <button class="btn-download" onclick="window.downloadChart('plotCorr', 'jpg', 'matriz_correlacion')"><i class="ti ti-file-picture"></i> JPG</button>
+        </div>
+        <div id="plotCorr" class="chart-container" style="min-height:340px;"></div>
+        <div class="chart-section-title" style="margin-top:18px;"><i class="ti ti-chart-histogram"></i> Distribución detallada</div>
+        <div class="chart-section-sub">Histograma de frecuencias y diagrama de caja para detectar valores atípicos.</div>
+        <div class="chart-controls" style="margin-bottom:8px;">
+          <div class="field">
+            <label>Columna numérica</label>
+            <select id="statColumn">${statColOptions}</select>
+          </div>
+          <div class="field" style="flex:0 0 auto;">
+            <label>&nbsp;</label>
+            <button class="btn-chart-gen" id="generateStatBtn">
+              <i class="ti ti-chart-histogram" style="font-size:14px;"></i> Analizar
+            </button>
+          </div>
+        </div>
+        <div class="chart-download-controls">
+          <span style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:0.3px;">Descargar:</span>
+          <button class="btn-download primary" onclick="window.downloadChart('plotHistMain', 'png', 'histograma')"><i class="ti ti-file-picture"></i> Histograma PNG</button>
+          <button class="btn-download" onclick="window.downloadChart('plotHistBox', 'png', 'diagrama_caja')"><i class="ti ti-file-picture"></i> Caja PNG</button>
+        </div>
+        <div class="chart-container split">
+          <div id="plotHistMain"></div>
+          <div id="plotHistBox"></div>
+        </div>
+      </div>
+
+      <div class="chart-panel" id="tab5">
+        <div id="chartMetrics" class="chart-metrics"></div>
+      </div>
+
+      <div class="chart-download-controls" style="margin-top:12px;border-color:var(--acc);">
+        <span style="font-size:10px;color:var(--txt2);text-transform:uppercase;letter-spacing:0.3px;font-weight:600;">
+          <i class="ti ti-download"></i> Descargar todas:
+        </span>
+        <button class="btn-download zip" onclick="window.downloadAllChartsAsZip('png')">
+          <i class="ti ti-file-zip"></i> ZIP (PNG)
+        </button>
+        <button class="btn-download zip" onclick="window.downloadAllChartsAsZip('jpg')">
+          <i class="ti ti-file-zip"></i> ZIP (JPG)
+        </button>
+        <button class="btn-download" onclick="window.downloadAllChartsAsZip('webp')">
+          <i class="ti ti-file-zip"></i> ZIP (WEBP)
+        </button>
+      </div>
+    `, () => {
+      closeModal();
+    });
+
+    window.downloadChart = downloadChart;
+    window.downloadAllChartsAsZip = downloadAllChartsAsZip;
+    window.downloadSingleChartAsZip = downloadSingleChartAsZip;
+
+    setTimeout(() => {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          const tabId = this.dataset.tab;
+          document.querySelectorAll('.chart-panel').forEach(p => p.classList.remove('active'));
+          const panel = document.getElementById(tabId);
+          panel.classList.add('active');
+          panel.querySelectorAll('.js-plotly-plot').forEach(gd => {
+            try { Plotly.Plots.resize(gd); } catch (e) { /* noop */ }
+          });
+        });
+      });
+
+      document.getElementById("generateChartBtn")?.addEventListener("click", () => generateAllCharts(false));
+      document.getElementById("generateMultiChartBtn")?.addEventListener("click", () => generateMultiChart());
+      document.getElementById("generateStatBtn")?.addEventListener("click", () => {
+        const col = document.getElementById("statColumn")?.value;
+        if (col) renderHistogramBox(col);
+      });
+      document.getElementById("statColumn")?.addEventListener("change", () => {
+        const col = document.getElementById("statColumn")?.value;
+        if (col) renderHistogramBox(col);
+      });
+
+      renderStatsPanel(numericCols);
+      setTimeout(() => generateAllCharts(true), 200);
+    }, 100);
+  }
+
+  function generateAllCharts(auto = false) {
+    const chartType = document.getElementById("chartType")?.value || "bar";
+    const labelCol = document.getElementById("chartLabel")?.value;
+    const valueCol = document.getElementById("chartValue")?.value;
+
+    if (!labelCol || !valueCol) {
+      if (!auto) showModalError("Seleccione columnas para la gráfica.");
+      return;
+    }
+
+    const dataMap = new Map();
+    state.currentRows.forEach(row => {
+      const label = row.data?.[labelCol] !== undefined && row.data?.[labelCol] !== null
+        ? String(row.data[labelCol])
+        : "Sin valor";
+      const value = row.data?.[valueCol];
+      if (value !== undefined && value !== null && isNumeric(value)) {
+        dataMap.set(label, (dataMap.get(label) || 0) + parseFloat(value));
+      }
+    });
+
+    if (dataMap.size === 0) {
+      if (!auto) showModalError("No hay datos numéricos para graficar.");
+      return;
+    }
+
+    const sortedData = Array.from(dataMap.entries()).sort((a, b) => b[1] - a[1]);
+    const labels = sortedData.map(d => d[0]);
+    const values = sortedData.map(d => d[1]);
+
+    const total = values.reduce((a, b) => a + b, 0);
+    const avg = mean(values);
+    const max = Math.max(...values);
+    const min = Math.min(...values);
+    const med = median(values);
+    const sd = stddev(values);
+
+    document.getElementById('badge1').textContent = values.length;
+    document.getElementById('badge2').textContent = Math.min(values.length, 15);
+
+    const metricsHtml = `
+      <div class="metric-card">
+        <div class="metric-value">${total.toFixed(2)}</div>
+        <div class="metric-label">Total</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${avg.toFixed(2)}</div>
+        <div class="metric-label">Promedio</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${med.toFixed(2)}</div>
+        <div class="metric-label">Mediana</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${sd.toFixed(2)}</div>
+        <div class="metric-label">Desviación Estándar</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${max.toFixed(2)}</div>
+        <div class="metric-label">Máximo</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${min.toFixed(2)}</div>
+        <div class="metric-label">Mínimo</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${state.currentRows.length}</div>
+        <div class="metric-label">Registros</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">${dataMap.size}</div>
+        <div class="metric-label">Categorías</div>
+      </div>
+    `;
+    document.getElementById("chartMetrics").innerHTML = metricsHtml;
+
+    renderMainChart('plotMain', chartType, labels, values, valueCol);
+
+    const topLabels = labels.slice(0, 15);
+    const topValues = values.slice(0, 15);
+    renderMainChart('plotDist', 'doughnut', topLabels, topValues, valueCol);
+
+    const numericCols = state.currentColumns.filter(c => {
+      return c !== "_id" && c !== "_shard_id" && state.currentRows.some(row => {
+        const val = row.data?.[c];
+        return val !== undefined && val !== null && isNumeric(val);
+      });
+    });
+    if (numericCols.length > 1) {
+      const multiSelect = document.getElementById("multiChartValues");
+      if (multiSelect) {
+        const options = multiSelect.options;
+        for (let i = 0; i < options.length && i < 3; i++) {
+          options[i].selected = true;
+        }
+        generateMultiChart();
+      }
+    }
+  }
+
+  function renderMainChart(divId, type, labels, values, label) {
+    const gd = document.getElementById(divId);
+    if (!gd) return;
+    const colors = getColorPalette(labels.length);
+
+    let data, layout;
+    if (type === 'pie' || type === 'doughnut') {
+      data = [{
+        type: 'pie', labels, values,
+        hole: type === 'doughnut' ? 0.55 : 0,
+        marker: { colors, line: { color: '#0d0d14', width: 1.5 } },
+        textinfo: 'percent',
+        textfont: { size: 10, color: '#0a0a14' },
+        hovertemplate: '%{label}: %{value:.2f} (%{percent})<extra></extra>'
+      }];
+      layout = baseLayout({ showlegend: true, legend: { orientation: 'v', font: { size: 9.5 } } });
+    } else if (type === 'radar' || type === 'polarArea') {
+      const closingLabels = [...labels, labels[0]];
+      const closingValues = [...values, values[0]];
+      data = [{
+        type: type === 'radar' ? 'scatterpolar' : 'barpolar',
+        r: type === 'radar' ? closingValues : values,
+        theta: type === 'radar' ? closingLabels : labels,
+        fill: type === 'radar' ? 'toself' : undefined,
+        marker: {
+          color: type === 'radar' ? hexToRgba(PALETTE[0], 0.35) : colors,
+          line: { color: PALETTE[0], width: 1.5 }
+        },
+        line: { color: PALETTE[0] }
+      }];
+      layout = baseLayout({
+        polar: {
+          bgcolor: 'rgba(0,0,0,0)',
+          radialaxis: { gridcolor: 'rgba(160,160,192,0.15)', tickfont: { size: 8.5 } },
+          angularaxis: { gridcolor: 'rgba(160,160,192,0.15)', tickfont: { size: 9 } }
+        }
+      });
+    } else if (type === 'line') {
+      data = [{
+        type: 'scatter', mode: 'lines+markers', x: labels, y: values,
+        line: { color: PALETTE[0], width: 2.5, shape: 'spline' },
+        marker: { color: PALETTE[0], size: 6 },
+        fill: 'tozeroy', fillcolor: hexToRgba(PALETTE[0], 0.12)
+      }];
+      layout = baseLayout({ xaxis: { tickangle: -35 }, yaxis: { title: label, rangemode: 'tozero' } });
+    } else {
+      const horizontal = type === 'horizontalBar';
+      data = [{
+        type: 'bar',
+        x: horizontal ? values : labels,
+        y: horizontal ? labels : values,
+        orientation: horizontal ? 'h' : 'v',
+        marker: { color: colors, line: { width: 0 } },
+        hovertemplate: horizontal ? '%{y}: %{x:.2f}<extra></extra>' : '%{x}: %{y:.2f}<extra></extra>'
+      }];
+      layout = baseLayout(horizontal
+        ? { xaxis: { title: label, rangemode: 'tozero' }, yaxis: { automargin: true }, margin: { t: 20, r: 20, b: 40, l: 130 } }
+        : { xaxis: { tickangle: -35 }, yaxis: { title: label, rangemode: 'tozero' } });
+    }
+
+    Plotly.newPlot(gd, data, layout, PLOT_CONFIG);
+    registerPlot(divId, divId === 'plotMain' ? 'grafica_principal' : 'grafica_distribucion');
+  }
+
+  function generateMultiChart() {
+    const multiSelect = document.getElementById("multiChartValues");
+    if (!multiSelect) return;
+
+    const selectedValues = [];
+    for (let i = 0; i < multiSelect.options.length; i++) {
+      if (multiSelect.options[i].selected) {
+        selectedValues.push(multiSelect.options[i].value);
+      }
+    }
+
+    if (selectedValues.length === 0) {
+      showModalError("Seleccione al menos una columna para comparar.");
+      return;
+    }
+
+    const labelCol = document.getElementById("chartLabel")?.value;
+    if (!labelCol) {
+      showModalError("Seleccione una columna para las etiquetas.");
+      return;
+    }
+
+    const dataMap = new Map();
+    state.currentRows.forEach(row => {
+      const label = row.data?.[labelCol] !== undefined && row.data?.[labelCol] !== null
+        ? String(row.data[labelCol])
+        : "Sin valor";
+      if (!dataMap.has(label)) {
+        dataMap.set(label, {});
+      }
+      const entry = dataMap.get(label);
+      selectedValues.forEach(col => {
+        const val = row.data?.[col];
+        if (val !== undefined && val !== null && isNumeric(val)) {
+          entry[col] = (entry[col] || 0) + parseFloat(val);
+        }
+      });
+    });
+
+    const labels = Array.from(dataMap.keys());
+    const colors = getColorPalette(selectedValues.length);
+
+    const data = selectedValues.map((col, index) => ({
+      type: 'scatter',
+      mode: 'lines+markers',
+      name: col,
+      x: labels,
+      y: labels.map(l => dataMap.get(l)[col] || 0),
+      line: { color: colors[index], width: 2.5, shape: 'spline' },
+      marker: { color: colors[index], size: 5 }
+    }));
+
+    const layout = baseLayout({ xaxis: { tickangle: -35 }, yaxis: { rangemode: 'tozero' }, showlegend: true });
+
+    const gd = document.getElementById('plotMulti');
+    if (!gd) return;
+    Plotly.newPlot(gd, data, layout, PLOT_CONFIG);
+    registerPlot('plotMulti', 'grafica_comparativa');
+    document.getElementById('badge3').textContent = selectedValues.length;
+  }
+
+  function renderStatsPanel(numericCols) {
+    const wrap = document.getElementById('statsTableWrap');
+    const insightsWrap = document.getElementById('insightsWrap');
+    if (!wrap) return;
+
+    if (numericCols.length === 0) {
+      wrap.innerHTML = '<div class="empty-msg">No hay columnas numéricas en este resultado para analizar.</div>';
+      if (insightsWrap) insightsWrap.innerHTML = '';
+      const corrDiv = document.getElementById('plotCorr');
+      if (corrDiv) corrDiv.innerHTML = '<div class="empty-msg">Se requieren columnas numéricas para calcular correlaciones.</div>';
+      const histMain = document.getElementById('plotHistMain');
+      const histBox = document.getElementById('plotHistBox');
+      if (histMain) histMain.innerHTML = '<div class="empty-msg">Sin columnas numéricas.</div>';
+      if (histBox) histBox.innerHTML = '';
+      return;
+    }
+
+    const series = getAlignedNumericSeries(numericCols);
+    const colors = getColorPalette(numericCols.length);
+    const stats = numericCols.map((c, i) => {
+      const raw = state.currentRows
+        .map(r => r.data?.[c])
+        .filter(v => v !== undefined && v !== null && isNumeric(v))
+        .map(v => parseFloat(v));
+      const sorted = [...raw].sort((a, b) => a - b);
+      return {
+        col: c, color: colors[i], count: raw.length,
+        mean: mean(raw), std: stddev(raw),
+        min: sorted[0] ?? 0, q25: quantile(sorted, 0.25), q50: quantile(sorted, 0.5),
+        q75: quantile(sorted, 0.75), max: sorted[sorted.length - 1] ?? 0,
+        skew: skewness(raw)
+      };
+    });
+
+    const rows = stats.map(s => `
+      <tr>
+        <td><span class="col-swatch" style="background:${s.color};"></span>${escapeHtml(s.col)}</td>
+        <td>${s.count}</td>
+        <td>${s.mean.toFixed(3)}</td>
+        <td>${s.std.toFixed(3)}</td>
+        <td>${s.min.toFixed(3)}</td>
+        <td>${s.q25.toFixed(3)}</td>
+        <td>${s.q50.toFixed(3)}</td>
+        <td>${s.q75.toFixed(3)}</td>
+        <td>${s.max.toFixed(3)}</td>
+        <td>${s.skew.toFixed(3)}</td>
+      </tr>
+    `).join('');
+
+    wrap.innerHTML = `
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Columna</th><th>N</th><th>Media</th><th>Desv. Est.</th>
+            <th>Mín</th><th>Q1 (25%)</th><th>Mediana</th><th>Q3 (75%)</th><th>Máx</th><th>Asimetría</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    `;
+
+    const insights = [];
+    const mostVariable = [...stats].sort((a, b) =>
+      (b.std / (Math.abs(b.mean) || 1)) - (a.std / (Math.abs(a.mean) || 1))
+    )[0];
+    if (mostVariable) {
+      const cv = ((mostVariable.std / (Math.abs(mostVariable.mean) || 1)) * 100).toFixed(1);
+      insights.push(`<div class="insight-card"><div class="insight-label">Mayor variabilidad relativa</div><div class="insight-text"><strong>${escapeHtml(mostVariable.col)}</strong> — coeficiente de variación de ${cv}%</div></div>`);
+    }
+    stats.forEach(s => {
+      if (Math.abs(s.skew) > 1) {
+        insights.push(`<div class="insight-card"><div class="insight-label">Distribución sesgada</div><div class="insight-text"><strong>${escapeHtml(s.col)}</strong> tiene un sesgo ${s.skew > 0 ? 'positivo' : 'negativo'} (${s.skew.toFixed(2)}), lo que sugiere posibles valores atípicos.</div></div>`);
+      }
+    });
+
+    if (numericCols.length > 1) {
+      let bestPair = null;
+      for (let i = 0; i < numericCols.length; i++) {
+        for (let j = i + 1; j < numericCols.length; j++) {
+          const a = series[numericCols[i]], b = series[numericCols[j]];
+          if (a.length < 2) continue;
+          const r = pearsonCorrelation(a, b);
+          if (!bestPair || Math.abs(r) > Math.abs(bestPair.r)) bestPair = { x: numericCols[i], y: numericCols[j], r };
+        }
+      }
+      if (bestPair && Math.abs(bestPair.r) > 0.05) {
+        const strength = Math.abs(bestPair.r) > 0.7 ? 'fuerte' : Math.abs(bestPair.r) > 0.4 ? 'moderada' : 'débil';
+        insights.push(`<div class="insight-card"><div class="insight-label">Correlación más fuerte</div><div class="insight-text"><strong>${escapeHtml(bestPair.x)}</strong> ↔ <strong>${escapeHtml(bestPair.y)}</strong>: r = ${bestPair.r.toFixed(3)} (${strength})</div></div>`);
+      }
+    }
+
+    if (insightsWrap) {
+      insightsWrap.innerHTML = insights.length ? `<div class="insight-grid">${insights.join('')}</div>` : '';
+    }
+
+    renderCorrelationHeatmap(numericCols, series);
+
+    if (numericCols.length > 0) renderHistogramBox(numericCols[0]);
+  }
+
+  function renderCorrelationHeatmap(numericCols, series) {
+    const gd = document.getElementById('plotCorr');
+    if (!gd) return;
+    if (numericCols.length < 2) {
+      gd.innerHTML = '<div class="empty-msg">Se requieren al menos dos columnas numéricas para calcular correlaciones.</div>';
+      return;
+    }
+    series = series || getAlignedNumericSeries(numericCols);
+    const n = numericCols.length;
+    const z = [];
+    for (let i = 0; i < n; i++) {
+      const row = [];
+      for (let j = 0; j < n; j++) {
+        const a = series[numericCols[i]], b = series[numericCols[j]];
+        row.push(a.length > 1 ? pearsonCorrelation(a, b) : (i === j ? 1 : 0));
+      }
+      z.push(row);
+    }
+    const textVals = z.map(row => row.map(v => v.toFixed(2)));
+
+    const data = [{
+      type: 'heatmap', z, x: numericCols, y: numericCols,
+      colorscale: [[0, '#C77B8B'], [0.5, '#171727'], [1, '#4FB89A']],
+      zmin: -1, zmax: 1,
+      text: textVals, texttemplate: '%{text}', textfont: { size: 10 },
+      hovertemplate: '%{x} ↔ %{y}: %{z:.3f}<extra></extra>',
+      colorbar: { thickness: 12, tickfont: { size: 9, color: '#a0a0c0' } }
+    }];
+    const layout = baseLayout({ margin: { t: 20, r: 20, b: 70, l: 90 }, xaxis: { tickangle: -35 } });
+    Plotly.newPlot(gd, data, layout, PLOT_CONFIG);
+    registerPlot('plotCorr', 'matriz_correlacion');
+  }
+
+  function renderHistogramBox(col) {
+    const histWrap = document.getElementById('plotHistMain');
+    const boxWrap = document.getElementById('plotHistBox');
+    if (!histWrap || !boxWrap) return;
+
+    const values = state.currentRows
+      .map(r => r.data?.[col])
+      .filter(v => v !== undefined && v !== null && isNumeric(v))
+      .map(v => parseFloat(v));
+
+    if (values.length === 0) {
+      histWrap.innerHTML = '<div class="empty-msg">Sin datos numéricos para esta columna.</div>';
+      boxWrap.innerHTML = '';
+      return;
+    }
+
+    const histData = [{
+      type: 'histogram', x: values,
+      marker: { color: hexToRgba(PALETTE[0], 0.75), line: { color: PALETTE[0], width: 1 } },
+      opacity: 0.9,
+      nbinsx: Math.min(30, Math.max(8, Math.round(Math.sqrt(values.length))))
+    }];
+    const histLayout = baseLayout({ bargap: 0.04, xaxis: { title: col }, yaxis: { title: 'Frecuencia' } });
+    Plotly.newPlot(histWrap, histData, histLayout, PLOT_CONFIG);
+
+    const boxData = [{
+      type: 'box', y: values, name: col, boxpoints: 'outliers',
+      marker: { color: PALETTE[3] }, line: { color: PALETTE[3] },
+      fillcolor: hexToRgba(PALETTE[3], 0.2)
+    }];
+    const boxLayout = baseLayout({ yaxis: { title: col }, showlegend: false });
+    Plotly.newPlot(boxWrap, boxData, boxLayout, PLOT_CONFIG);
+
+    registerPlot('plotHistMain', `histograma_${col}`);
+    registerPlot('plotHistBox', `diagrama_caja_${col}`);
+  }
+
+  async function loadEntities() {
+    try {
+      const res = await apiFetch(`/entities?db=${encodeURIComponent(state.db)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      state.dbs = data.dbs || [];
+      state.blocks = data.blocks || [];
+
+      dbSelect.innerHTML = state.dbs.map(d =>
+        `<option value="${escapeHtml(d)}" ${d === state.db ? "selected" : ""}>${escapeHtml(d)}</option>`
+      ).join("") || `<option>${escapeHtml(state.db)}</option>`;
+
+      if (state.blocks.length === 0) {
+        blockList.innerHTML = `<div class="empty-msg">Sin bloques en "${escapeHtml(state.db)}"</div>`;
+        return;
+      }
+
+      blockList.innerHTML = state.blocks.map(b =>
+        `<div class="block-item" data-block="${escapeHtml(b.name)}">
+          <i class="ti ti-table"></i>
+          <span>${escapeHtml(b.name)}</span>
+          <div class="block-actions">
+            <button class="add-doc" title="Agregar Documento" data-action="addDoc"><i class="ti ti-plus"></i></button>
+            <button class="edit" title="Renombrar" data-action="rename"><i class="ti ti-pencil"></i></button>
+            <button class="del" title="Eliminar" data-action="delete"><i class="ti ti-trash"></i></button>
+          </div>
+          <i class="ti ti-chevron-right arrow"></i>
+        </div>`
+      ).join("");
+
+      blockList.querySelectorAll(".block-item").forEach(el => {
+        const block = el.dataset.block;
+        el.addEventListener("click", (e) => {
+          if (e.target.closest(".block-actions")) return;
+          const limit = limitSelect.value === "0" ? "" : ` LIMIT ${limitSelect.value}`;
+          queryInput.value = `FIND ${block}${limit}`;
+          state.currentBlock = block;
+          runQuery();
+        });
+
+        el.querySelectorAll("[data-action]").forEach(btn => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const action = btn.dataset.action;
+            if (action === "addDoc") showAddRowFromBlock(block);
+            if (action === "rename") showRenameBlock(block);
+            if (action === "delete") showDeleteBlock(block);
+          });
+        });
+      });
+
+    } catch (err) {
+      // Silencioso
+    }
+  }
+
+  addDbBtn.addEventListener("click", () => {
+    showModal("Crear Base de Datos", `
+      <div class="field">
+        <label>Nombre de la base de datos</label>
+        <input type="text" id="newDbName" placeholder="nombre_db" />
+      </div>
+    `, async () => {
+      const name = document.getElementById("newDbName").value.trim();
+      if (!name) { showModalError("El nombre no puede estar vacío."); return; }
+      try {
+        await executeQuery(`CREATE DB ${name}`);
+        closeModal();
+        await loadEntities();
+        state.db = name;
+        dbSelect.value = name;
+        resInfo.textContent = `Base de datos creada: ${name}`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  });
+
+  delDbBtn.addEventListener("click", async () => {
+    const db = dbSelect.value;
+    if (state.dbs.length <= 1) {
+      resInfo.textContent = "No se puede eliminar la única base de datos.";
+      return;
+    }
+    showModal("Eliminar Base de Datos", `
+      <p style="color:var(--txt2);margin-bottom:12px;">¿Eliminar la base de datos <strong style="color:var(--red);">${escapeHtml(db)}</strong>?</p>
+      <p style="color:var(--txt3);font-size:12px;">Esta acción eliminará todos los bloques y documentos.</p>
+      <input type="hidden" id="delDbName" value="${escapeHtml(db)}" />
+    `, async () => {
+      const name = document.getElementById("delDbName").value;
+      try {
+        await executeQuery(`DROP DB ${name}`);
+        closeModal();
+        await loadEntities();
+        if (state.dbs.length > 0) {
+          state.db = state.dbs[0];
+          dbSelect.value = state.db;
+          await loadEntities();
+        }
+        resInfo.textContent = `Base de datos eliminada: ${name}`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+    document.querySelector("#modalSave").className = "btn-danger";
+    document.querySelector("#modalSave").textContent = "Eliminar";
+  });
+
+  addBlockBtn.addEventListener("click", () => {
+    showModal("Crear Bloque", `
+      <div class="field">
+        <label>Nombre del bloque</label>
+        <input type="text" id="newBlockName" placeholder="nombre_bloque" />
+      </div>
+      <p style="color:var(--txt3);font-size:11px;margin-top:-4px;">El bloque se creará en la base de datos actual: <strong style="color:var(--txt2);">${escapeHtml(state.db)}</strong></p>
+    `, async () => {
+      const name = document.getElementById("newBlockName").value.trim();
+      if (!name) { showModalError("El nombre no puede estar vacío."); return; }
+      try {
+        await executeQuery(`CREATE BLOCK ${name}`);
+        closeModal();
+        await loadEntities();
+        resInfo.textContent = `Bloque creado: ${name}`;
+        queryInput.value = `FIND ${name} LIMIT 10`;
+        state.currentBlock = name;
+        runQuery();
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  });
+
+  function showRenameBlock(oldName) {
+    showModal("Renombrar Bloque", `
+      <div class="field">
+        <label>Nombre actual</label>
+        <input type="text" value="${escapeHtml(oldName)}" disabled />
+      </div>
+      <div class="field">
+        <label>Nuevo nombre</label>
+        <input type="text" id="newBlockName" value="${escapeHtml(oldName)}" />
+      </div>
+    `, async () => {
+      const newName = document.getElementById("newBlockName").value.trim();
+      if (!newName) { showModalError("El nombre no puede estar vacío."); return; }
+      if (newName === oldName) { closeModal(); return; }
+      try {
+        await executeQuery(`RENAME BLOCK ${oldName} TO ${newName}`);
+        closeModal();
+        await loadEntities();
+        resInfo.textContent = `Bloque renombrado: ${oldName} → ${newName}`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  }
+
+  function showDeleteBlock(name) {
+    showModal("Eliminar Bloque", `
+      <p style="color:var(--txt2);margin-bottom:12px;">¿Eliminar el bloque <strong style="color:var(--red);">${escapeHtml(name)}</strong>?</p>
+      <p style="color:var(--txt3);font-size:12px;">Esta acción eliminará todos los documentos del bloque.</p>
+      <input type="hidden" id="delBlockName" value="${escapeHtml(name)}" />
+    `, async () => {
+      const target = document.getElementById("delBlockName").value;
+      try {
+        await executeQuery(`DROP BLOCK ${target}`);
+        closeModal();
+        await loadEntities();
+        resInfo.textContent = `Bloque eliminado: ${target}`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+    document.querySelector("#modalSave").className = "btn-danger";
+    document.querySelector("#modalSave").textContent = "Eliminar";
+  }
+
+  // ============================================================
+  // AGREGAR DOCUMENTO - VERSIÓN MEJORADA CON ESTRUCTURA DE TABLA
+  // ============================================================
+
+  function showAddRowFromBlock(blockName) {
+    // Primero intentamos obtener la estructura del bloque
+    executeQuery(`FIND ${blockName} LIMIT 1`)
+      .then(body => {
+        const cols = body.columns ? body.columns.filter(c => c !== "_id" && c !== "_shard_id") : [];
+        
+        if (cols.length === 0) {
+          // Si no hay columnas, usamos el modo dinámico completo
+          showDynamicAddDocument(blockName, []);
+          return;
+        }
+        
+        // Si hay columnas, mostramos la versión con campos predefinidos + campos dinámicos adicionales
+        showStructuredAddDocument(blockName, cols);
+      })
+      .catch(() => {
+        // Si falla la consulta, usamos el modo dinámico
+        showDynamicAddDocument(blockName, []);
+      });
+  }
+
+  // ============================================================
+  // VERSIÓN CON CAMPOS ESTRUCTURADOS (cuando hay tabla)
+  // ============================================================
+  function showStructuredAddDocument(blockName, cols) {
+    let fieldsHtml = cols.map(c => `
+      <div class="field">
+        <label>${escapeHtml(c)}</label>
+        <input type="text" class="structured-field" data-field="${escapeHtml(c)}" placeholder="valor" />
+      </div>
+    `).join("");
+
+    showModal(`Agregar Documento a "${blockName}"`, `
+      <div class="field">
+        <label>ID personalizado (opcional)</label>
+        <input type="text" id="customDocId" placeholder="dejar vacío para ID automático" />
+        <span style="font-size:9px;color:var(--txt3);margin-top:2px;">Ejemplo: "usuario_123" o "doc-001"</span>
+      </div>
+      <div class="field">
+        <label>Bloque destino</label>
+        <input type="text" value="${escapeHtml(blockName)}" disabled />
+      </div>
+      <p style="color:var(--txt3);font-size:11px;margin-bottom:12px;">Campos de la tabla <strong style="color:var(--acc);">${escapeHtml(blockName)}</strong></p>
+      ${fieldsHtml}
+      
+      <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:12px;">
+        <p style="color:var(--txt3);font-size:11px;margin-bottom:8px;">Campos adicionales (opcional)</p>
+        <div id="dynamicFieldsContainer"></div>
+        <button class="add-field-btn" id="addDynamicFieldBtn"><i class="ti ti-plus"></i> Agregar campo adicional</button>
+      </div>
+      
+      <div class="field" style="margin-top:8px;">
+        <label>Vista previa (JSON)</label>
+        <textarea id="jsonPreview" style="font-family:var(--mono);font-size:11px;background:var(--bg1);height:60px;" readonly>{
+  "campo": "valor"
+}</textarea>
+      </div>
+      <input type="hidden" id="addStructuredBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const block = document.getElementById("addStructuredBlock").value;
+      const customId = document.getElementById("customDocId").value.trim();
+      const doc = {};
+      let hasData = false;
+
+      // Obtener campos estructurados
+      document.querySelectorAll('.structured-field').forEach(el => {
+        const fieldName = el.dataset.field;
+        const val = el.value.trim();
+        if (val) {
+          let parsed;
+          try { parsed = JSON.parse(val); } catch { parsed = val; }
+          doc[fieldName] = parsed;
+          hasData = true;
+        }
+      });
+
+      // Obtener campos dinámicos adicionales
+      document.querySelectorAll('#dynamicFieldsContainer .dynamic-field').forEach(el => {
+        const nameInput = el.querySelector(".dynamic-field-name");
+        const valueInput = el.querySelector(".dynamic-field-value");
+        const typeSelect = el.querySelector(".dynamic-field-type");
+        const name = nameInput.value.trim();
+        const value = valueInput.value.trim();
+        const type = typeSelect ? typeSelect.value : "string";
+
+        if (name && value) {
+          let parsedValue = value;
+          switch (type) {
+            case "number":
+              parsedValue = parseFloat(value);
+              break;
+            case "boolean":
+              parsedValue = value.toLowerCase() === "true" || value.toLowerCase() === "1";
+              break;
+            case "null":
+              parsedValue = null;
+              break;
+            case "array":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            case "object":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            default:
+              parsedValue = value;
+          }
+          doc[name] = parsedValue;
+          hasData = true;
+        }
+      });
+
+      if (!hasData) {
+        showModalError("Complete al menos un campo.");
+        return;
+      }
+
+      try {
+        let nql;
+        if (customId) {
+          nql = `INSERT ${block} ${customId} ${JSON.stringify(doc)}`;
+        } else {
+          nql = `INSERT ${block} ${JSON.stringify(doc)}`;
+        }
+        await executeQuery(nql);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Documento agregado a ${block}${customId ? ` con ID: ${customId}` : ''}.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+
+    // Función para actualizar la vista previa en tiempo real
+    function updateStructuredPreview() {
+      const preview = document.getElementById("jsonPreview");
+      if (!preview) return;
+      
+      const doc = {};
+      
+      // Campos estructurados
+      document.querySelectorAll('.structured-field').forEach(el => {
+        const fieldName = el.dataset.field;
+        const val = el.value.trim();
+        if (val) {
+          let parsed;
+          try { parsed = JSON.parse(val); } catch { parsed = val; }
+          doc[fieldName] = parsed;
+        }
+      });
+
+      // Campos dinámicos
+      document.querySelectorAll('#dynamicFieldsContainer .dynamic-field').forEach(el => {
+        const nameInput = el.querySelector(".dynamic-field-name");
+        const valueInput = el.querySelector(".dynamic-field-value");
+        const typeSelect = el.querySelector(".dynamic-field-type");
+        const name = nameInput.value.trim();
+        const value = valueInput.value.trim();
+        const type = typeSelect ? typeSelect.value : "string";
+
+        if (name && value) {
+          let parsedValue = value;
+          switch (type) {
+            case "number":
+              parsedValue = parseFloat(value);
+              break;
+            case "boolean":
+              parsedValue = value.toLowerCase() === "true" || value.toLowerCase() === "1";
+              break;
+            case "null":
+              parsedValue = null;
+              break;
+            case "array":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            case "object":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            default:
+              parsedValue = value;
+          }
+          doc[name] = parsedValue;
+        }
+      });
+
+      const customId = document.getElementById("customDocId")?.value.trim() || "";
+      const block = document.getElementById("addStructuredBlock")?.value || "bloque";
+      
+      let previewText;
+      if (Object.keys(doc).length === 0) {
+        previewText = '{\n  "campo": "valor"\n}';
+      } else if (customId) {
+        previewText = `INSERT ${block} ${customId} ${JSON.stringify(doc, null, 2)}`;
+      } else {
+        previewText = `INSERT ${block} ${JSON.stringify(doc, null, 2)}`;
+      }
+      preview.value = previewText;
+    }
+
+    setTimeout(() => {
+      // Eventos para actualizar la vista previa
+      document.querySelectorAll('.structured-field, #customDocId').forEach(el => {
+        el.addEventListener("input", updateStructuredPreview);
+        el.addEventListener("change", updateStructuredPreview);
+      });
+
+      // Botón para agregar campos dinámicos
+      const addBtn = document.getElementById("addDynamicFieldBtn");
+      if (addBtn) {
+        addBtn.addEventListener("click", () => {
+          const container = document.getElementById("dynamicFieldsContainer");
+          const div = document.createElement("div");
+          div.className = "dynamic-field";
+          div.innerHTML = `
+            <div class="field" style="flex:2;">
+              <label>Nombre del campo</label>
+              <input type="text" class="dynamic-field-name" placeholder="nombre" />
+            </div>
+            <div class="field" style="flex:3;">
+              <label>Valor (JSON válido)</label>
+              <input type="text" class="dynamic-field-value" placeholder='"valor" o 123 o ["a","b"]' />
+            </div>
+            <div class="field" style="flex:1.5;">
+              <label>Tipo</label>
+              <select class="dynamic-field-type">
+                <option value="string">Texto</option>
+                <option value="number">Número</option>
+                <option value="boolean">Booleano</option>
+                <option value="null">Nulo</option>
+                <option value="array">Array</option>
+                <option value="object">Objeto</option>
+              </select>
+            </div>
+            <button class="remove-field" style="margin-top:18px;" title="Eliminar campo"><i class="ti ti-x"></i></button>
+          `;
+          container.appendChild(div);
+          div.querySelector(".remove-field").addEventListener("click", () => {
+            div.remove();
+            updateStructuredPreview();
+          });
+          
+          // Agregar eventos para actualizar preview
+          div.querySelectorAll("input, select").forEach(el => {
+            el.addEventListener("input", updateStructuredPreview);
+            el.addEventListener("change", updateStructuredPreview);
+          });
+          
+          updateStructuredPreview();
+        });
+      }
+
+      // Inicializar preview
+      updateStructuredPreview();
+    }, 100);
+  }
+
+  // ============================================================
+  // AGREGAR DOCUMENTO CON CAMPOS DINÁMICOS (cuando NO hay tabla)
+  // ============================================================
+  function showDynamicAddDocument(blockName, cols) {
+    const hasCols = cols && cols.length > 0;
+    const fieldsHtml = `
+      <div id="dynamicFieldsContainer">
+        <div class="dynamic-field" data-index="0">
+          <div class="field" style="flex:2;">
+            <label>Nombre del campo</label>
+            <input type="text" class="dynamic-field-name" placeholder="nombre" />
+          </div>
+          <div class="field" style="flex:3;">
+            <label>Valor (JSON válido)</label>
+            <input type="text" class="dynamic-field-value" placeholder='"valor" o 123 o ["a","b"]' />
+          </div>
+          <div class="field" style="flex:1.5;">
+            <label>Tipo</label>
+            <select class="dynamic-field-type">
+              <option value="string">Texto</option>
+              <option value="number">Número</option>
+              <option value="boolean">Booleano</option>
+              <option value="null">Nulo</option>
+              <option value="array">Array</option>
+              <option value="object">Objeto</option>
+            </select>
+          </div>
+          <button class="remove-field" style="margin-top:18px;" title="Eliminar campo"><i class="ti ti-x"></i></button>
+        </div>
+      </div>
+      <button class="add-field-btn" id="addDynamicFieldBtn"><i class="ti ti-plus"></i> Agregar Campo</button>
+    `;
+
+    const infoMsg = hasCols 
+      ? `La tabla <strong style="color:var(--acc);">${escapeHtml(blockName)}</strong> tiene campos definidos, pero puedes agregar campos adicionales.`
+      : `No hay estructura definida para <strong style="color:var(--acc);">${escapeHtml(blockName)}</strong>. Define los campos del documento.`;
+
+    showModal(`Agregar Documento a "${blockName}"`, `
+      <div class="field">
+        <label>ID personalizado (opcional)</label>
+        <input type="text" id="customDocIdDynamic" placeholder="dejar vacío para ID automático" />
+        <span style="font-size:9px;color:var(--txt3);margin-top:2px;">Ejemplo: "usuario_123" o "doc-001"</span>
+      </div>
+      <div class="field">
+        <label>Bloque destino</label>
+        <input type="text" value="${escapeHtml(blockName)}" disabled />
+      </div>
+      <p style="color:var(--txt3);font-size:11px;margin-bottom:12px;">${infoMsg}</p>
+      ${fieldsHtml}
+      <div class="field" style="margin-top:8px;">
+        <label>Vista previa (JSON)</label>
+        <textarea id="jsonPreviewDynamic" style="font-family:var(--mono);font-size:11px;background:var(--bg1);height:60px;" readonly>{
+  "campo": "valor"
+}</textarea>
+      </div>
+      <input type="hidden" id="addDynamicBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const block = document.getElementById("addDynamicBlock").value;
+      const customId = document.getElementById("customDocIdDynamic").value.trim();
+      const doc = {};
+      let hasData = false;
+
+      const containers = document.querySelectorAll("#dynamicFieldsContainer .dynamic-field");
+      containers.forEach(el => {
+        const nameInput = el.querySelector(".dynamic-field-name");
+        const valueInput = el.querySelector(".dynamic-field-value");
+        const typeSelect = el.querySelector(".dynamic-field-type");
+        const name = nameInput.value.trim();
+        const value = valueInput.value.trim();
+        const type = typeSelect ? typeSelect.value : "string";
+
+        if (name && value) {
+          let parsedValue = value;
+          switch (type) {
+            case "number":
+              parsedValue = parseFloat(value);
+              break;
+            case "boolean":
+              parsedValue = value.toLowerCase() === "true" || value.toLowerCase() === "1";
+              break;
+            case "null":
+              parsedValue = null;
+              break;
+            case "array":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            case "object":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            default:
+              parsedValue = value;
+          }
+          doc[name] = parsedValue;
+          hasData = true;
+        }
+      });
+
+      if (!hasData) {
+        showModalError("Complete al menos un campo con nombre y valor.");
+        return;
+      }
+
+      try {
+        let nql;
+        if (customId) {
+          nql = `INSERT ${block} ${customId} ${JSON.stringify(doc)}`;
+        } else {
+          nql = `INSERT ${block} ${JSON.stringify(doc)}`;
+        }
+        await executeQuery(nql);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Documento agregado a ${block}${customId ? ` con ID: ${customId}` : ''}.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+
+    // Función para actualizar la vista previa en tiempo real (versión dinámica)
+    function updateDynamicPreview() {
+      const preview = document.getElementById("jsonPreviewDynamic");
+      if (!preview) return;
+      
+      const doc = {};
+      const containers = document.querySelectorAll("#dynamicFieldsContainer .dynamic-field");
+      containers.forEach(el => {
+        const nameInput = el.querySelector(".dynamic-field-name");
+        const valueInput = el.querySelector(".dynamic-field-value");
+        const typeSelect = el.querySelector(".dynamic-field-type");
+        const name = nameInput.value.trim();
+        const value = valueInput.value.trim();
+        const type = typeSelect ? typeSelect.value : "string";
+
+        if (name && value) {
+          let parsedValue = value;
+          switch (type) {
+            case "number":
+              parsedValue = parseFloat(value);
+              break;
+            case "boolean":
+              parsedValue = value.toLowerCase() === "true" || value.toLowerCase() === "1";
+              break;
+            case "null":
+              parsedValue = null;
+              break;
+            case "array":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            case "object":
+              try { parsedValue = JSON.parse(value); } catch { parsedValue = value; }
+              break;
+            default:
+              parsedValue = value;
+          }
+          doc[name] = parsedValue;
+        }
+      });
+
+      const customId = document.getElementById("customDocIdDynamic")?.value.trim() || "";
+      const block = document.getElementById("addDynamicBlock")?.value || "bloque";
+      
+      let previewText;
+      if (Object.keys(doc).length === 0) {
+        previewText = '{\n  "campo": "valor"\n}';
+      } else if (customId) {
+        previewText = `INSERT ${block} ${customId} ${JSON.stringify(doc, null, 2)}`;
+      } else {
+        previewText = `INSERT ${block} ${JSON.stringify(doc, null, 2)}`;
+      }
+      preview.value = previewText;
+    }
+
+    setTimeout(() => {
+      // Eventos para actualizar la vista previa
+      const container = document.getElementById("dynamicFieldsContainer");
+      const customIdInput = document.getElementById("customDocIdDynamic");
+      
+      if (container) {
+        container.addEventListener("input", updateDynamicPreview);
+        container.addEventListener("change", updateDynamicPreview);
+      }
+      if (customIdInput) {
+        customIdInput.addEventListener("input", updateDynamicPreview);
+      }
+
+      const addBtn = document.getElementById("addDynamicFieldBtn");
+      if (addBtn) {
+        addBtn.addEventListener("click", () => {
+          const container = document.getElementById("dynamicFieldsContainer");
+          const div = document.createElement("div");
+          div.className = "dynamic-field";
+          div.innerHTML = `
+            <div class="field" style="flex:2;">
+              <label>Nombre del campo</label>
+              <input type="text" class="dynamic-field-name" placeholder="nombre" />
+            </div>
+            <div class="field" style="flex:3;">
+              <label>Valor (JSON válido)</label>
+              <input type="text" class="dynamic-field-value" placeholder='"valor" o 123 o ["a","b"]' />
+            </div>
+            <div class="field" style="flex:1.5;">
+              <label>Tipo</label>
+              <select class="dynamic-field-type">
+                <option value="string">Texto</option>
+                <option value="number">Número</option>
+                <option value="boolean">Booleano</option>
+                <option value="null">Nulo</option>
+                <option value="array">Array</option>
+                <option value="object">Objeto</option>
+              </select>
+            </div>
+            <button class="remove-field" style="margin-top:18px;" title="Eliminar campo"><i class="ti ti-x"></i></button>
+          `;
+          container.appendChild(div);
+          div.querySelector(".remove-field").addEventListener("click", () => {
+            if (container.children.length > 1) {
+              div.remove();
+              updateDynamicPreview();
+            }
+          });
+          
+          div.querySelectorAll("input, select").forEach(el => {
+            el.addEventListener("input", updateDynamicPreview);
+            el.addEventListener("change", updateDynamicPreview);
+          });
+          
+          updateDynamicPreview();
+        });
+      }
+
+      document.querySelectorAll("#dynamicFieldsContainer .remove-field").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const container = document.getElementById("dynamicFieldsContainer");
+          if (container.children.length > 1) {
+            this.closest(".dynamic-field").remove();
+            updateDynamicPreview();
+          }
+        });
+      });
+
+      updateDynamicPreview();
+    }, 100);
+  }
+
+  // Las demás funciones (showClearField, showDeleteField, showEditRow, etc.) 
+  // permanecen igual que antes
+
+  function showClearField(rowId, fieldName) {
+    const row = state.currentRows.find(r => r._id === rowId);
+    if (!row) {
+      resInfo.textContent = "Error: No se encontró la fila.";
+      return;
+    }
+
+    if (fieldName === "_id" || fieldName === "_shard_id") {
+      resInfo.textContent = "No se pueden eliminar campos del sistema.";
+      return;
+    }
+
+    const blockName = getBlockName();
+    if (!blockName) {
+      resInfo.textContent = "Error: No se pudo determinar el bloque.";
+      return;
+    }
+
+    const currentValue = row.data?.[fieldName];
+    const displayValue = fmtCell(currentValue);
+
+    showModal(`Eliminar campo: ${fieldName}`, `
+      <p style="color:var(--txt2);margin-bottom:12px;">¿Eliminar el campo <strong style="color:var(--red);">${escapeHtml(fieldName)}</strong> de este documento?</p>
+      <p style="color:var(--txt3);font-size:12px;">Valor actual: <strong style="color:var(--txt);font-family:var(--mono);">${escapeHtml(displayValue)}</strong></p>
+      <p style="color:var(--txt3);font-size:12px;margin-top:8px;">El campo quedará vacío (null) en este documento.</p>
+      <input type="hidden" id="clearFieldRowId" value="${escapeHtml(rowId)}" />
+      <input type="hidden" id="clearFieldName" value="${escapeHtml(fieldName)}" />
+      <input type="hidden" id="clearFieldBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const id = document.getElementById("clearFieldRowId").value;
+      const field = document.getElementById("clearFieldName").value;
+      const block = document.getElementById("clearFieldBlock").value;
+
+      try {
+        await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${field} = null`);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Campo ${field} eliminado (null) del documento ${id}.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+    document.querySelector("#modalSave").className = "btn-danger";
+    document.querySelector("#modalSave").textContent = "Eliminar";
+  }
+
+  function showDeleteField(columnName) {
+    const blockName = getBlockName();
+    if (!blockName) {
+      resInfo.textContent = "Error: No se pudo determinar el bloque.";
+      return;
+    }
+
+    if (columnName === "_id" || columnName === "_shard_id") {
+      resInfo.textContent = "No se pueden eliminar campos del sistema (_id, _shard_id).";
+      return;
+    }
+
+    showModal(`Eliminar Columna: ${columnName}`, `
+      <p style="color:var(--txt2);margin-bottom:12px;">¿Eliminar la columna <strong style="color:var(--red);">${escapeHtml(columnName)}</strong> de todos los documentos?</p>
+      <p style="color:var(--txt3);font-size:12px;">Esta acción establecerá el campo <strong>${escapeHtml(columnName)}</strong> como <strong>null</strong> en todos los documentos del bloque <strong>${escapeHtml(blockName)}</strong>.</p>
+      <input type="hidden" id="deleteFieldName" value="${escapeHtml(columnName)}" />
+      <input type="hidden" id="deleteFieldBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const field = document.getElementById("deleteFieldName").value;
+      const block = document.getElementById("deleteFieldBlock").value;
+
+      try {
+        const allDocs = await executeQuery(`FIND ${block}`);
+        if (!allDocs.rows || allDocs.rows.length === 0) {
+          showModalError("No hay documentos para modificar.");
+          return;
+        }
+
+        for (const row of allDocs.rows) {
+          const id = row._id;
+          await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${field} = null`);
+        }
+
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Columna ${field} eliminada (establecida a null) en ${allDocs.rows.length} documentos.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+    document.querySelector("#modalSave").className = "btn-danger";
+    document.querySelector("#modalSave").textContent = "Eliminar";
+  }
+
+  function showEditRow(rowId) {
+    const row = state.currentRows.find(r => r._id === rowId);
+    if (!row) {
+      resInfo.textContent = "Error: No se encontró la fila.";
+      return;
+    }
+
+    const cols = state.currentColumns.filter(c => c !== "_id" && c !== "_shard_id");
+    let fieldsHtml = cols.map(c => {
+      const val = row.data?.[c];
+      const isArray = isArrayField(val);
+      const displayVal = isArray ? JSON.stringify(val) : fmtCell(val);
+      return `
+      <div class="field">
+        <label>${escapeHtml(c)} ${isArray ? '<span style="color:var(--acc);font-size:9px;">(array)</span>' : ''}</label>
+        <input type="text" id="edit_${escapeHtml(c)}" value="${escapeHtml(displayVal)}" />
+      </div>
+    `}).join("");
+
+    const blockName = getBlockName();
+
+    showModal("Editar Documento", `
+      <div class="field">
+        <label>ID</label>
+        <input type="text" value="${escapeHtml(rowId)}" disabled />
+      </div>
+      ${fieldsHtml}
+      <input type="hidden" id="editRowId" value="${escapeHtml(rowId)}" />
+      <input type="hidden" id="editBlockName" value="${escapeHtml(blockName || '')}" />
+    `, async () => {
+      const id = document.getElementById("editRowId").value;
+      const block = document.getElementById("editBlockName").value;
+      if (!block) {
+        showModalError("No se pudo determinar el bloque.");
+        return;
+      }
+
+      const updates = {};
+      let hasChanges = false;
+      cols.forEach(c => {
+        const el = document.getElementById(`edit_${escapeHtml(c)}`);
+        if (el) {
+          const val = el.value;
+          let parsed;
+          try { parsed = JSON.parse(val); } catch { parsed = val; }
+          const original = row.data?.[c];
+          if (JSON.stringify(parsed) !== JSON.stringify(original)) {
+            updates[c] = parsed;
+            hasChanges = true;
+          }
+        }
+      });
+
+      if (!hasChanges) {
+        showModalError("No se realizaron cambios.");
+        return;
+      }
+
+      try {
+        const setClause = Object.entries(updates)
+          .map(([k, v]) => `${k} = ${JSON.stringify(v)}`)
+          .join(", ");
+        await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${setClause}`);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Documento ${id} actualizado.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  }
+
+  function showEditArray(rowId, fieldName) {
+    const row = state.currentRows.find(r => r._id === rowId);
+    if (!row) {
+      resInfo.textContent = "Error: No se encontró la fila.";
+      return;
+    }
+
+    const arrayData = row.data?.[fieldName];
+    if (!Array.isArray(arrayData)) {
+      resInfo.textContent = "Error: El campo no es un array.";
+      return;
+    }
+
+    let itemsHtml = arrayData.map((item, idx) => `
+      <div class="array-item" data-index="${idx}">
+        <input type="text" class="array-value" value="${escapeHtml(JSON.stringify(item))}" />
+        <button class="remove-item" title="Eliminar"><i class="ti ti-x"></i></button>
+      </div>
+    `).join("");
+
+    const blockName = getBlockName();
+
+    showModal(`Editar Array: ${fieldName}`, `
+      <div class="field">
+        <label>Elementos del array</label>
+        <div id="arrayItems">${itemsHtml}</div>
+        <button class="add-field-btn" id="addArrayItemBtn"><i class="ti ti-plus"></i> Agregar elemento</button>
+      </div>
+      <input type="hidden" id="editArrayRowId" value="${escapeHtml(rowId)}" />
+      <input type="hidden" id="editArrayField" value="${escapeHtml(fieldName)}" />
+      <input type="hidden" id="editArrayBlock" value="${escapeHtml(blockName || '')}" />
+    `, async () => {
+      const id = document.getElementById("editArrayRowId").value;
+      const field = document.getElementById("editArrayField").value;
+      const block = document.getElementById("editArrayBlock").value;
+
+      if (!block) {
+        showModalError("No se pudo determinar el bloque.");
+        return;
+      }
+
+      const items = document.querySelectorAll("#arrayItems .array-item");
+      const newArray = [];
+      items.forEach(el => {
+        const val = el.querySelector(".array-value").value.trim();
+        if (val) {
+          let parsed;
+          try { parsed = JSON.parse(val); } catch { parsed = val; }
+          newArray.push(parsed);
+        }
+      });
+
+      if (JSON.stringify(newArray) === JSON.stringify(arrayData)) {
+        showModalError("No se realizaron cambios.");
+        return;
+      }
+
+      try {
+        await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${field} = ${JSON.stringify(newArray)}`);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Array ${field} actualizado.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+
+    setTimeout(() => {
+      document.getElementById("addArrayItemBtn")?.addEventListener("click", () => {
+        const container = document.getElementById("arrayItems");
+        const div = document.createElement("div");
+        div.className = "array-item";
+        div.innerHTML = `
+          <input type="text" class="array-value" placeholder="valor" />
+          <button class="remove-item" title="Eliminar"><i class="ti ti-x"></i></button>
+        `;
+        container.appendChild(div);
+        div.querySelector(".remove-item").addEventListener("click", () => {
+          if (container.children.length > 1) {
+            div.remove();
+          }
+        });
+      });
+
+      document.querySelectorAll("#arrayItems .remove-item").forEach(btn => {
+        btn.addEventListener("click", function() {
+          const container = document.getElementById("arrayItems");
+          if (container.children.length > 1) {
+            this.closest(".array-item").remove();
+          }
+        });
+      });
+    }, 50);
+  }
+
+  function showAddField(rowId) {
+    const row = state.currentRows.find(r => r._id === rowId);
+    if (!row) {
+      resInfo.textContent = "Error: No se encontró la fila.";
+      return;
+    }
+
+    const blockName = getBlockName();
+
+    showModal("Agregar Campo", `
+      <div class="field">
+        <label>Nombre del campo</label>
+        <input type="text" id="newFieldName" placeholder="nombre_campo" />
+      </div>
+      <div class="field">
+        <label>Valor (JSON válido)</label>
+        <input type="text" id="newFieldValue" placeholder='"valor" o 123 o ["a","b"]' />
+      </div>
+      <input type="hidden" id="addFieldRowId" value="${escapeHtml(rowId)}" />
+      <input type="hidden" id="addFieldBlock" value="${escapeHtml(blockName || '')}" />
+    `, async () => {
+      const id = document.getElementById("addFieldRowId").value;
+      const block = document.getElementById("addFieldBlock").value;
+      const fieldName = document.getElementById("newFieldName").value.trim();
+      const fieldValue = document.getElementById("newFieldValue").value.trim();
+
+      if (!block) {
+        showModalError("No se pudo determinar el bloque.");
+        return;
+      }
+
+      if (!fieldName) {
+        showModalError("El nombre del campo no puede estar vacío.");
+        return;
+      }
+
+      if (!fieldValue) {
+        showModalError("El valor no puede estar vacío.");
+        return;
+      }
+
+      let parsed;
+      try { parsed = JSON.parse(fieldValue); } catch { parsed = fieldValue; }
+
+      try {
+        await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${fieldName} = ${JSON.stringify(parsed)}`);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Campo ${fieldName} agregado al documento ${id}.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  }
+
+  function showAddColumn() {
+    const blockName = getBlockName();
+    if (!blockName) {
+      resInfo.textContent = "Error: No se pudo determinar el bloque.";
+      return;
+    }
+
+    const currentCols = state.currentColumns.filter(c => c !== "_id" && c !== "_shard_id");
+    const colsList = currentCols.length > 0 ? 
+      currentCols.map(c => `<span style="display:inline-block;background:var(--bg2);padding:2px 8px;border-radius:3px;margin:2px;font-family:var(--mono);font-size:10px;">${escapeHtml(c)}</span>`).join("") :
+      "Sin columnas adicionales";
+
+    showModal("Agregar Columna", `
+      <div class="field">
+        <label>Columnas actuales</label>
+        <div style="padding:6px 8px;background:var(--bg1);border-radius:var(--radius);border:1px solid var(--border);min-height:30px;">
+          ${colsList}
+        </div>
+      </div>
+      <div class="field">
+        <label>Nombre de la nueva columna</label>
+        <input type="text" id="newColumnName" placeholder="nombre_columna" />
+      </div>
+      <div class="field">
+        <label>Valor inicial (JSON válido)</label>
+        <input type="text" id="newColumnValue" placeholder='"valor" o 123 o ["a","b"]' />
+      </div>
+      <p style="color:var(--txt3);font-size:11px;margin-top:4px;">Esta columna se agregará a todos los documentos del bloque <strong style="color:var(--txt2);">${escapeHtml(blockName)}</strong></p>
+      <input type="hidden" id="addColumnBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const block = document.getElementById("addColumnBlock").value;
+      const columnName = document.getElementById("newColumnName").value.trim();
+      const columnValue = document.getElementById("newColumnValue").value.trim();
+
+      if (!columnName) {
+        showModalError("El nombre de la columna no puede estar vacío.");
+        return;
+      }
+
+      if (state.currentColumns.includes(columnName)) {
+        showModalError(`La columna "${columnName}" ya existe.`);
+        return;
+      }
+
+      let parsed;
+      try { parsed = JSON.parse(columnValue || '""'); } catch { parsed = columnValue || ""; }
+
+      try {
+        const rows = state.currentRows;
+        if (rows.length === 0) {
+          showModalError("No hay documentos para modificar.");
+          return;
+        }
+
+        for (const row of rows) {
+          const id = row._id;
+          await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${columnName} = ${JSON.stringify(parsed)}`);
+        }
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Columna ${columnName} agregada a ${rows.length} documentos.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+  }
+
+  function showDeleteRow(rowId) {
+    const blockName = getBlockName();
+
+    if (!blockName) {
+      resInfo.textContent = "Error: No se pudo determinar el bloque.";
+      return;
+    }
+
+    showModal("Eliminar Documento", `
+      <p style="color:var(--txt2);margin-bottom:12px;">¿Eliminar el documento con ID <strong style="color:var(--red);">${escapeHtml(rowId)}</strong>?</p>
+      <input type="hidden" id="deleteRowId" value="${escapeHtml(rowId)}" />
+      <input type="hidden" id="deleteRowBlock" value="${escapeHtml(blockName)}" />
+    `, async () => {
+      const id = document.getElementById("deleteRowId").value;
+      const block = document.getElementById("deleteRowBlock").value;
+      try {
+        await executeQuery(`DELETE ${block} WHERE _id = "${id}"`);
+        closeModal();
+        await runQuery();
+        resInfo.textContent = `Documento ${id} eliminado.`;
+      } catch (err) {
+        showModalError(err.message);
+      }
+    });
+
+    document.querySelector("#modalSave").className = "btn-danger";
+    document.querySelector("#modalSave").textContent = "Eliminar";
+  }
+
+  async function runQuery() {
+    const nql = queryInput.value.trim();
+    if (!nql || !state.baseUrl) return;
+
+    btnRun.disabled = true;
+    btnRun.innerHTML = '<i class="ti ti-loader" style="font-size:14px;animation:spin 0.8s linear infinite;"></i>';
+    resBody.innerHTML = `<div class="empty-msg">Ejecutando...</div>`;
+    resInfo.textContent = "Ejecutando consulta...";
+
+    if (!document.getElementById("spinStyle")) {
+      const style = document.createElement("style");
+      style.id = "spinStyle";
+      style.textContent = "@keyframes spin { to { transform: rotate(360deg); } }";
+      document.head.appendChild(style);
+    }
+
+    state.currentQuery = nql;
+
+    const blockMatch = nql.match(/^\s*(FIND|GET)\s+(\S+)/i);
+    if (blockMatch) {
+      state.currentBlock = blockMatch[2];
+    }
+
+    const started = performance.now();
+
+    try {
+      const isFindOrGet = /^\s*(FIND|GET)\s+/i.test(nql);
+      let finalNql = nql;
+
+      if (isFindOrGet && !/LIMIT\s+/i.test(nql)) {
+        const limit = limitSelect.value === "0" ? "" : ` LIMIT ${limitSelect.value}`;
+        if (limit) finalNql = nql + limit;
+      }
+
+      const body = await executeQuery(finalNql);
+      const elapsed = performance.now() - started;
+
+      renderResults(body, elapsed, finalNql);
+
+    } catch (err) {
+      resBody.innerHTML = `<div class="error-msg"><i class="ti ti-alert-circle" style="margin-right:6px;"></i>${escapeHtml(err.message)}</div>`;
+      resInfo.textContent = `Error: ${err.message}`;
+    } finally {
+      btnRun.disabled = false;
+      btnRun.innerHTML = '<i class="ti ti-player-play" style="font-size:14px;"></i> Ejecutar';
+    }
+  }
+
+  function renderResults(body, elapsed, nql) {
+    if (Array.isArray(body.rows) && Array.isArray(body.columns)) {
+      state.currentRows = body.rows;
+      state.currentColumns = body.columns;
+
+      resInfo.innerHTML = `<strong>${body.rows.length}</strong> filas · ${fmtDuration(elapsed)} · <span style="font-family:var(--mono);font-size:10px;">${escapeHtml(nql)}</span>`;
+
+      if (body.rows.length === 0) {
+        resBody.innerHTML = `<div class="empty-msg">Sin documentos. (${fmtDuration(elapsed)})</div>`;
+        return;
+      }
+
+      renderTable(body.rows, body.columns);
+
+    } else if (body && body.result !== undefined) {
+      state.currentRows = [];
+      state.currentColumns = [];
+      const text = String(body.result);
+      resInfo.innerHTML = `${fmtDuration(elapsed)} · <span style="font-family:var(--mono);font-size:10px;">${escapeHtml(nql)}</span>`;
+      resBody.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+
+    } else {
+      state.currentRows = [];
+      state.currentColumns = [];
+      resInfo.innerHTML = `${fmtDuration(elapsed)} · <span style="font-family:var(--mono);font-size:10px;">${escapeHtml(nql)}</span>`;
+      resBody.innerHTML = `<pre>${escapeHtml(JSON.stringify(body, null, 2))}</pre>`;
+    }
+
+    searchInput.value = "";
+  }
+
+  function renderTable(rows, columns) {
+    const searchTerm = searchInput.value.trim().toLowerCase();
+    let filteredRows = rows;
+    if (searchTerm) {
+      filteredRows = rows.filter(row => {
+        return columns.some(col => {
+          const v = (col === "_id" || col === "_shard_id") ? row[col] : row.data?.[col];
+          return String(v).toLowerCase().includes(searchTerm);
+        });
+      });
+    }
+
+    const currentCols = columns.filter(c => c !== "_id" && c !== "_shard_id");
+    let html = `<div class="table-actions">
+      <button id="addColumnBtn"><i class="ti ti-plus"></i> Agregar Columna</button>
+      <span class="current-columns-info">Columnas: <strong>${currentCols.length}</strong> (${currentCols.map(c => `<span style="font-family:var(--mono);font-size:9px;">${escapeHtml(c)}</span>`).join(', ')})</span>
+    </div>`;
+    
+    html += `<div class="table-wrap"><table><thead><tr>`;
+    columns.forEach(c => {
+      html += `<th>${escapeHtml(c)}</th>`;
+    });
+    html += `<th style="width:100px;">Acciones</th></tr></thead><tbody>`;
+
+    if (filteredRows.length === 0) {
+      html += `<tr><td colspan="${columns.length + 1}" style="text-align:center;color:var(--txt3);padding:20px;">Sin coincidencias.</td></tr>`;
+    } else {
+      filteredRows.forEach((row, idx) => {
+        const rowId = row._id || `row-${idx}`;
+        html += `<tr data-rowid="${escapeHtml(rowId)}">`;
+        columns.forEach(col => {
+          const v = (col === "_id" || col === "_shard_id") ? row[col] : row.data?.[col];
+          let cellContent = escapeHtml(fmtCell(v));
+          if (isArrayField(v) && v.length > 0) {
+            cellContent += ` <span class="array-badge" data-rowid="${escapeHtml(rowId)}" data-field="${escapeHtml(col)}">[${v.length} elementos]</span>`;
+          }
+          html += `<td>${cellContent}</td>`;
+        });
+        html += `<td>
+          <div class="row-actions">
+            <button class="edit" data-action="editRow" data-rowid="${escapeHtml(rowId)}" title="Editar Documento"><i class="ti ti-pencil"></i></button>
+            <button class="add-field" data-action="addField" data-rowid="${escapeHtml(rowId)}" title="Agregar Campo"><i class="ti ti-plus"></i></button>
+            <button class="clear-field" data-action="clearField" data-rowid="${escapeHtml(rowId)}" title="Eliminar Campo (dejar vacío)"><i class="ti ti-eraser"></i></button>
+            <button class="del" data-action="deleteRow" data-rowid="${escapeHtml(rowId)}" title="Eliminar Documento"><i class="ti ti-trash"></i></button>
+          </div>
+        </td>`;
+        html += `</tr>`;
+      });
+    }
+
+    html += `</tbody></table></div>`;
+    resBody.innerHTML = html;
+
+    resBody.querySelectorAll("[data-action='editRow']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rowId = btn.dataset.rowid;
+        showEditRow(rowId);
+      });
+    });
+
+    resBody.querySelectorAll("[data-action='addField']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rowId = btn.dataset.rowid;
+        showAddField(rowId);
+      });
+    });
+
+    resBody.querySelectorAll("[data-action='clearField']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rowId = btn.dataset.rowid;
+        const row = state.currentRows.find(r => r._id === rowId);
+        if (!row) return;
+        
+        const cols = state.currentColumns.filter(c => c !== "_id" && c !== "_shard_id");
+        let optionsHtml = cols.map(c => {
+          const val = row.data?.[c];
+          if (val !== undefined && val !== null) {
+            return `<option value="${escapeHtml(c)}">${escapeHtml(c)} (${escapeHtml(fmtCell(val).substring(0, 30))})</option>`;
+          }
+          return `<option value="${escapeHtml(c)}">${escapeHtml(c)} (vacío)</option>`;
+        }).join("");
+
+        if (!optionsHtml) {
+          resInfo.textContent = "No hay campos para eliminar.";
+          return;
+        }
+
+        showModal("Eliminar Campo", `
+          <div class="field">
+            <label>Seleccionar campo a eliminar</label>
+            <select id="clearFieldSelect">${optionsHtml}</select>
+          </div>
+          <p style="color:var(--txt3);font-size:11px;">El campo quedará vacío (null) en este documento.</p>
+          <input type="hidden" id="clearFieldRowId" value="${escapeHtml(rowId)}" />
+        `, async () => {
+          const id = document.getElementById("clearFieldRowId").value;
+          const field = document.getElementById("clearFieldSelect").value;
+          const block = getBlockName();
+
+          if (!block) {
+            showModalError("No se pudo determinar el bloque.");
+            return;
+          }
+
+          if (!field) {
+            showModalError("Seleccione un campo.");
+            return;
+          }
+
+          try {
+            await executeQuery(`UPDATE ${block} WHERE _id = "${id}" SET ${field} = null`);
+            closeModal();
+            await runQuery();
+            resInfo.textContent = `Campo ${field} eliminado (null) del documento ${id}.`;
+          } catch (err) {
+            showModalError(err.message);
+          }
+        });
+        document.querySelector("#modalSave").className = "btn-danger";
+        document.querySelector("#modalSave").textContent = "Eliminar";
+      });
+    });
+
+    resBody.querySelectorAll("[data-action='deleteRow']").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const rowId = btn.dataset.rowid;
+        showDeleteRow(rowId);
+      });
+    });
+
+    resBody.querySelectorAll(".array-badge").forEach(badge => {
+      badge.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const rowId = badge.dataset.rowid;
+        const field = badge.dataset.field;
+        showEditArray(rowId, field);
+      });
+    });
+
+    const addColumnBtn = document.getElementById("addColumnBtn");
+    if (addColumnBtn) {
+      addColumnBtn.addEventListener("click", showAddColumn);
+    }
+  }
+
+  searchInput.addEventListener("input", () => {
+    if (state.currentRows.length > 0 && state.currentColumns.length > 0) {
+      renderTable(state.currentRows, state.currentColumns);
+    }
+  });
+
+  modalClose.addEventListener("click", closeModal);
+  modalCancel.addEventListener("click", closeModal);
+  modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+
+  modalSave.addEventListener("click", () => {
+    if (modalCallback) modalCallback();
+  });
+
+  connectForm.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    connectError.hidden = true;
+    connectBtn.disabled = true;
+    connectBtn.textContent = "Conectando…";
+
+    const baseUrl = buildBaseUrl();
+    const username = fUser.value.trim();
+    const password = fPass.value;
+    const db = fDb.value.trim() || "default";
+    const authHeader = "Basic " + btoa(`${username}:${password}`);
+
+    try {
+      const res = await fetch(baseUrl + "/status", { headers: { Authorization: authHeader } });
+      if (res.status === 401) throw new Error("Usuario o contraseña incorrectos.");
+      if (!res.ok) throw new Error(`El servidor respondió ${res.status}.`);
+      const status = await res.json();
+
+      state.baseUrl = baseUrl;
+      state.authHeader = authHeader;
+      state.db = db;
+
+      targetLabel.textContent = `${fHost.value}:${fPort.value} · ${status.node_id || "—"}`;
+      connectScreen.style.display = "none";
+      app.classList.add("visible");
+      setStatus("ok", "conectado");
+
+      await loadEntities();
+      queryInput.value = "SHOW BLOCKS";
+      runQuery();
+
+    } catch (err) {
+      connectError.textContent = err.message || "No se pudo conectar.";
+      connectError.hidden = false;
+      setStatus("err", "sin conexión");
+    } finally {
+      connectBtn.disabled = false;
+      connectBtn.textContent = "Conectar";
+    }
+  });
+
+  disconnectBtn.addEventListener("click", () => {
+    state.baseUrl = "";
+    state.authHeader = "";
+    state.blocks = [];
+    state.dbs = [];
+    state.currentRows = [];
+    state.currentColumns = [];
+    fPass.value = "";
+    app.classList.remove("visible");
+    connectScreen.style.display = "flex";
+    setStatus("err", "desconectado");
+    resBody.innerHTML = `<div class="empty-msg">Desconectado.</div>`;
+    resInfo.textContent = "Desconectado";
+  });
+
+  btnRun.addEventListener("click", runQuery);
+
+  btnChart.addEventListener("click", showChartModal);
+
+  queryInput.addEventListener("keydown", (ev) => {
+    if ((ev.ctrlKey || ev.metaKey) && ev.key === "Enter") {
+      ev.preventDefault();
+      runQuery();
+    }
+  });
+
+  queryInput.addEventListener("input", () => {
+    queryInput.style.height = "auto";
+    queryInput.style.height = queryInput.scrollHeight + "px";
+  });
+
+  dbSelect.addEventListener("change", async () => {
+    state.db = dbSelect.value;
+    await loadEntities();
+  });
+
+  refreshBtn.addEventListener("click", loadEntities);
+
+  document.querySelectorAll("[data-cmd]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      queryInput.value = btn.dataset.cmd;
+      runQuery();
+    });
+  });
+
+  btnClear.addEventListener("click", () => {
+    resBody.innerHTML = `<div class="empty-msg">Resultados limpiados.</div>`;
+    resInfo.textContent = "Listo";
+    state.currentRows = [];
+    state.currentColumns = [];
+    searchInput.value = "";
+    chartInstances.forEach(c => {
+      const gd = document.getElementById(c.id);
+      if (gd && gd.data) { try { Plotly.purge(gd); } catch (e) { /* noop */ } }
+    });
+    chartInstances = [];
+  });
+
+  btnCopy.addEventListener("click", async () => {
+    const text = resBody.textContent || "";
+    try {
+      await navigator.clipboard?.writeText(text);
+      const icon = btnCopy.querySelector("i");
+      icon.className = "ti ti-check";
+      setTimeout(() => { icon.className = "ti ti-copy"; }, 1200);
+    } catch {
+      // fallback
+    }
+  });
+
+  if (location.protocol !== "file:" && location.hostname) {
+    fHost.value = location.hostname;
+    if (location.port) fPort.value = location.port;
+    fTls.checked = location.protocol === "https:";
+  }
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[project]
+name = "caimandb-client"
+version = "0.1.0"
+description = "Zero-dependency Python client for CaimanDB"
+requires-python = ">=3.8"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["caimandb*"]

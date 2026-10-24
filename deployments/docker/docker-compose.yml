@@ -1,0 +1,18 @@
+services:
+  caimandb:
+    build:
+      context: ../..
+      dockerfile: deployments/docker/Dockerfile
+    ports:
+      - "1555:1555"   # query server
+      - "1556:1556"   # admin API
+      - "9090:9090"   # prometheus metrics
+      - "2335:2335"   # raft
+    environment:
+      CAIMANDB_DATA: /app/data
+      CAIMANDB_LOG_LEVEL: info
+    volumes:
+      - caimandb-data:/app/data
+
+volumes:
+  caimandb-data:

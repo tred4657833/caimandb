@@ -1,0 +1,16 @@
+{
+    "name": "caimandb/caimandb-client",
+    "description": "Dependency-free PHP client for CaimanDB (requires ext-curl)",
+    "type": "library",
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "CaimanDB\\": "src/"
+        }
+    }
+}

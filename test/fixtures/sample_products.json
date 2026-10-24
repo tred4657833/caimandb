@@ -1,0 +1,5 @@
+[
+  {"name": "Teclado mecánico", "price": 45.99, "stock": 120, "category": "electronics"},
+  {"name": "Mouse inalámbrico", "price": 19.99, "stock": 300, "category": "electronics"},
+  {"name": "Monitor 27\"", "price": 249.00, "stock": 40, "category": "electronics"}
+]
